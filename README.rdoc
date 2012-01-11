@@ -17,7 +17,7 @@ Queue configuration must be done by both the client and the server.
 
 Only the queues that will be used by each must be defined (a client may configure a subset of the queues used by the server, so long as it configures all the queues that it uses).
 
-SQSJobQueue is the queue implementation used by default. This may be overridden by calling SimpleJob::JobQueue.config :implementation => 'alternate_queue_implementation_identifier'
+SQSJobQueue is the queue implementation used by default. This may be overridden by calling SimpleJob::JobQueue.config :implementation => 'my_queue_type'
 
 === Minimal configuration - specify queue prefix and define one default queue
 
@@ -56,7 +56,7 @@ SQSJobQueue is the queue implementation used by default. This may be overridden 
 You may call #enqueue with no arguments, in which case JobQueue.default will be used.
 
  f = FooSender.new(:target => 'joe', :foo_content => 'foo!')  # can also assign attributes with f.target=, f.foo_content=
- if f.enqueue(queue)
+ if f.enqueue
    puts 'i just sent some foo to joe!'
  else
    puts "the following errors occurred: #{f.errors.full_messages.join('; ')}"
@@ -67,7 +67,7 @@ You may call #enqueue with no arguments, in which case JobQueue.default will be 
 
 === Simple usage with explicit queue
 
-To explicitly specify the queue to use, simply specify its type when calling enqueue.
+To explicitly specify the queue to use, simply specify its type identifier (defined in SQSJobQueue.define_queue declaration) when calling enqueue.
 
  f = FooSender.new
  f.target = 'bob'
@@ -78,16 +78,24 @@ To explicitly specify the queue to use, simply specify its type when calling enq
 
 Alternatively, the queue may be attached to the job upfront for multiple enqueue operations:
 
- FooSender.job_queue(SimpleJob::JobQueue['high-priority'])
+ FooSender.job_queue('high-priority')
  f1 = FooSender.new(:target => 'cookie monster', :foo_content => 'cookies and milk')
- f1.enqueue
+ f1.enqueue  # high-priority queue will be used
  f2 = FooSender.new(:target => 'oscar the grouch', :foo_content => 'pizza')
- f2.enqueue
+ f2.enqueue  # high-priority queue will be used
 
 
 == Job Server Usage
 
- JobQueue.default.poll do |message|
-   FooSender
+Calling #poll on a queue instance will, by default, dispatch each job to the proper registered class based on type and version. Its options are passed through to the underlying implementation. In the case of the SQSJobQueue, poll accepts the options documented for the aws-sdk AWS::SQS::Queue#poll method.
+
+ JobQueue.default.poll(:poll_interval => 1, :idle_timeout => 60)
+
+You can override the default behavior by passing a block to #poll that accepts both a job definition instance and an SQS message.
+
+ JobQueue.default.poll(:poll_interval => 1, :idle_timeout => 60) do |definition, message|
+   logger.debug "received message: #{message.inspect}"
+   logger.debug "dispatched to definition #{definition.inspect}; executing..."
+   definition.execute
  end
 
