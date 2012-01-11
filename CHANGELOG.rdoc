@@ -1,3 +1,5 @@
 = Simple Job
 
 == Version 0.0.0
+* Supports declaring queues, easy declaration of job definitions, and enqueuing/polling
+* Contains a queue implementation backed by Amazon SQS
