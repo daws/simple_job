@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.0.1
+* Properly handling exceptions that occur during job execution
+** Message will now be re-enqueued, subject to visibility timeout
+
 == Version 0.0.0
 * Supports declaring queues, easy declaration of job definitions, and enqueuing/polling
 * Contains a queue implementation backed by Amazon SQS
