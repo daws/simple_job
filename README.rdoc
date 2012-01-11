@@ -1,0 +1,93 @@
+= Simple Job
+
+A gem containing libraries that support running background jobs or tasks. It's designed to make it easy to:
+
+* Define a job
+* Enqueue a job
+* Poll for and execute jobs
+
+It is architected to support multiple types of queue implementations, but currently, it only includes an implementation using AWS SQS (http://aws.amazon.com/sqs/). Alternate queue implementations could be plugged in by the client using lib/simple_job/sqs_job_queue.rb as an example.
+
+The AWS SQS queue implementation requires the aws-sdk gem, which must be initialized (by calling AWS.config) for this API to be capable of enqueuing or polling for jobs.
+
+
+== Queue Configuration
+
+Queue configuration must be done by both the client and the server.
+
+Only the queues that will be used by each must be defined (a client may configure a subset of the queues used by the server, so long as it configures all the queues that it uses).
+
+SQSJobQueue is the queue implementation used by default. This may be overridden by calling SimpleJob::JobQueue.config :implementation => 'alternate_queue_implementation_identifier'
+
+=== Minimal configuration - specify queue prefix and define one default queue
+
+ SimpleJob::SQSJobQueue.config :queue_prefix => 'my-job'
+ SimpleJob::SQSJobQueue.define_queue 'normal', :default => true
+
+=== Complex configuration with explicit queue implementation, non-rails-defined environment, and multiple queues
+
+ SimpleJob::JobQueue.config :implementation => 'sqs'
+ SimpleJob::SQSJobQueue.config :queue_prefix => 'stash-job', :environment => 'production'
+ SimpleJob::SQSJobQueue.define_queue 'normal', :visibility_timeout => 60, :default => true
+ SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
+ SimpleJob::SQSJobQueue.define_queue 'long-running', :visibility_timeout => 3600
+
+
+== Job Definition
+
+ class FooSender
+   include SimpleJob::JobDefinition
+
+   simple_job_attribute :target, :foo_content  # defines getters/setters for each, and
+                                               # adds them to serialized message
+
+   validates :target, :presence => true  # standard ActiveModel validation
+
+   def execute
+     puts "#{foo_content} -> #{target}"
+   end
+ end
+
+
+== Job Client Usage
+
+=== Typical usage of default queue
+
+You may call #enqueue with no arguments, in which case JobQueue.default will be used.
+
+ f = FooSender.new(:target => 'joe', :foo_content => 'foo!')  # can also assign attributes with f.target=, f.foo_content=
+ if f.enqueue(queue)
+   puts 'i just sent some foo to joe!'
+ else
+   puts "the following errors occurred: #{f.errors.full_messages.join('; ')}"
+ end
+
+ json = f.to_json # { "type": "foo_sender", "version": "1", "data": { "target": "joe", "foo_content": "foo!" } }
+ f_copy = FooSender.new.from_json(json)
+
+=== Simple usage with explicit queue
+
+To explicitly specify the queue to use, simply specify its type when calling enqueue.
+
+ f = FooSender.new
+ f.target = 'bob'
+ f.foo_content = 'foo!'
+ f.enqueue!('normal')  # raises exception if operation fails
+
+=== Queue configuration for multiple enqueue operations
+
+Alternatively, the queue may be attached to the job upfront for multiple enqueue operations:
+
+ FooSender.job_queue(SimpleJob::JobQueue['high-priority'])
+ f1 = FooSender.new(:target => 'cookie monster', :foo_content => 'cookies and milk')
+ f1.enqueue
+ f2 = FooSender.new(:target => 'oscar the grouch', :foo_content => 'pizza')
+ f2.enqueue
+
+
+== Job Server Usage
+
+ JobQueue.default.poll do |message|
+   FooSender
+ end
+
