@@ -60,13 +60,15 @@ class SQSJobQueue < JobQueue
       definition.execute
     end
 
-    sqs_queue.poll(options) do |message|
+    loop do
       begin
-        raw_message = JSON.parse(message.body)
-        definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
-        raise('no definition found') if !definition_class
-        definition = definition_class.new.from_json(message.body)
-        message_handler.call(definition, message)
+        sqs_queue.poll(options) do |message|
+          raw_message = JSON.parse(message.body)
+          definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
+          raise('no definition found') if !definition_class
+          definition = definition_class.new.from_json(message.body)
+          message_handler.call(definition, message)
+        end
       rescue Exception => e
         if options[:raise_exceptions]
           raise e
