@@ -27,7 +27,7 @@ SQSJobQueue is the queue implementation used by default. This may be overridden 
 === Complex configuration with explicit queue implementation, non-rails-defined environment, and multiple queues
 
  SimpleJob::JobQueue.config :implementation => 'sqs'
- SimpleJob::SQSJobQueue.config :queue_prefix => 'stash-job', :environment => 'production'
+ SimpleJob::SQSJobQueue.config :queue_prefix => 'my-job', :environment => 'production'
  SimpleJob::SQSJobQueue.define_queue 'normal', :visibility_timeout => 60, :default => true
  SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
  SimpleJob::SQSJobQueue.define_queue 'long-running', :visibility_timeout => 3600
