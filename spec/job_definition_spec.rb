@@ -102,7 +102,7 @@ describe JobDefinition do
 
     it "should produce valid json" do
       subject.attr = "foo"
-      subject.to_json.should == '{"data":{"attr":"foo"},"type":"simple_job","version":"1"}'
+      JSON.parse(subject.to_json).should == JSON.parse('{"data":{"attr":"foo"},"type":"simple_job","version":"1"}')
     end
 
   end

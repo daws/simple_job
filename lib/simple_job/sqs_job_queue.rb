@@ -71,6 +71,7 @@ class SQSJobQueue < JobQueue
           definition = definition_class.new.from_json(message.body)
           message_handler.call(definition, message)
         end
+        return
       rescue SignalException => e
         raise e
       rescue Exception => e
