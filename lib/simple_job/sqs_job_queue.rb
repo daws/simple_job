@@ -72,15 +72,16 @@ class SQSJobQueue < JobQueue
           message_handler.call(definition, message)
         end
         return
-      rescue SignalException => e
+      rescue SignalException, SystemExit => e
+        logger.info "received #{e.class}; exiting poll loop and re-raising: #{e.message}"
         raise e
       rescue Exception => e
         if options[:raise_exceptions]
           raise e
         else
-          JobQueue.config[:logger].error("unable to process message: #{e.message}")
-          JobQueue.config[:logger].error("message body: #{last_message && last_message.body}")
-          JobQueue.config[:logger].error(e.backtrace.join("\n  "))
+          logger.error("unable to process message: #{e.message}")
+          logger.error("message body: #{last_message && last_message.body}")
+          logger.error(e.backtrace.join("\n  "))
         end
       end
     end
@@ -98,6 +99,10 @@ class SQSJobQueue < JobQueue
     sqs = ::AWS::SQS.new
     self.sqs_queue = sqs.queues.create "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
     self.visibility_timeout = visibility_timeout
+  end
+
+  def logger
+    JobQueue.config[:logger]
   end
 
 end
