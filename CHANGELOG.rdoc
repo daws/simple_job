@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.0.3
+* Properly handling SystemExit and SignalException in SQSJobQueue#poll so that process can be daemonized
+
 == Version 0.0.2
 * Bug fix to SQSJobQueue#poll so it returns when idle timeout expires
 
