@@ -127,7 +127,9 @@ module JobDefinition
     end
 
     def register_simple_job(options = {})
-      default_type = self.name.underscore.to_sym
+      default_type = self.name.split('::').last.underscore.to_sym
+
+      replace_existing = options.delete(:replace_existing) || false
 
       @definition = {
         :class => self,
@@ -139,7 +141,10 @@ module JobDefinition
       @definition[:versions] = Array(@definition[:versions])
       @definition[:versions].collect! { |value| value.to_s }
 
-      ::SimpleJob::JobDefinition.job_definitions.delete_if { |item| item[:type] == default_type }
+      if replace_existing
+        ::SimpleJob::JobDefinition.job_definitions.delete_if { |item| item[:type] == default_type }
+      end
+
       ::SimpleJob::JobDefinition.job_definitions << @definition
     end
 
