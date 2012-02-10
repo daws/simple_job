@@ -1,3 +1,6 @@
+require 'socket'
+require 'fog'
+
 module SimpleJob
 class SQSJobQueue < JobQueue
 
@@ -9,6 +12,7 @@ class SQSJobQueue < JobQueue
       :queue_prefix => ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX'],
       :default_visibility_timeout => 60,
       :environment => (defined?(Rails) && Rails.env) || 'development',
+      :cloud_watch_namespace => nil,
     }
 
     @config.merge!(options) if options
@@ -62,20 +66,30 @@ class SQSJobQueue < JobQueue
 
     loop do
       last_message = nil
+      current_job_type = ''
+      current_start_milliseconds = 0
       begin
         sqs_queue.poll(options) do |message|
           last_message = message
           raw_message = JSON.parse(message.body)
+
+          current_job_type = raw_message['type']
+          current_start_milliseconds = get_milliseconds
+
           definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
           raise('no definition found') if !definition_class
           definition = definition_class.new.from_json(message.body)
           message_handler.call(definition, message)
+
+          log_execution(true, current_job_type, current_start_milliseconds)
         end
         return
       rescue SignalException, SystemExit => e
         logger.info "received #{e.class}; exiting poll loop and re-raising: #{e.message}"
         raise e
       rescue Exception => e
+        log_execution(false, current_job_type, current_start_milliseconds)
+
         if options[:raise_exceptions]
           raise e
         else
@@ -93,17 +107,73 @@ class SQSJobQueue < JobQueue
     attr_accessor :queues
   end
 
-  attr_accessor :sqs_queue, :visibility_timeout
+  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :cloud_watch
 
   def initialize(type, visibility_timeout)
     sqs = ::AWS::SQS.new
-    self.sqs_queue = sqs.queues.create "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
+    self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
+    self.sqs_queue = sqs.queues.create(queue_name)
     self.visibility_timeout = visibility_timeout
+    self.cloud_watch = Fog::AWS::CloudWatch.new(
+      :aws_access_key_id => AWS.config.access_key_id,
+      :aws_secret_access_key => AWS.config.secret_access_key
+    )
   end
 
   def logger
     JobQueue.config[:logger]
   end
 
+  def get_milliseconds
+    (Time.now.to_f * 1000).round
+  end
+
+  def log_execution(successful, job_type, start_milliseconds)
+    if self.class.config[:cloud_watch_namespace]
+      timestamp = DateTime.now.to_s
+      environment = self.class.config[:environment]
+      hostname = Socket.gethostbyname(Socket.gethostname).first
+      execution_time = get_milliseconds - start_milliseconds
+      dimensions = [
+        { 'Name' => 'Environment', 'Value' => environment }, 
+        { 'Name' => 'SQSQueueName', 'Value' => queue_name },
+        { 'Name' => 'JobType', 'Value' => job_type },
+        { 'Name' => 'Host', 'Value' => hostname },
+      ]
+
+      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], [
+        {
+          'MetricName' => 'ExecutionCount',
+          'Timestamp' => timestamp,
+          'Unit' => 'Count',
+          'Value' => 1,
+          'Dimensions' => dimensions
+        },
+        {
+          'MetricName' => 'SuccessCount',
+          'Timestamp' => timestamp,
+          'Unit' => 'Count',
+          'Value' => successful ? 1 : 0,
+          'Dimensions' => dimensions
+        },
+        {
+          'MetricName' => 'ErrorCount',
+          'Timestamp' => timestamp,
+          'Unit' => 'Count',
+          'Value' => successful ? 0 : 1,
+          'Dimensions' => dimensions
+        },
+        {
+          'MetricName' => 'ExecutionTime',
+          'Timestamp' => timestamp,
+          'Unit' => 'Milliseconds',
+          'Value' => execution_time,
+          'Dimensions' => dimensions
+        },
+      ] )
+    end
+  end
+
 end
 end
+

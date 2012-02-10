@@ -129,7 +129,7 @@ module JobDefinition
     def register_simple_job(options = {})
       default_type = self.name.split('::').last.underscore.to_sym
 
-      replace_existing = options.delete(:replace_existing) || false
+      replace_existing = options.delete(:replace_existing) || true
 
       @definition = {
         :class => self,
