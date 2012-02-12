@@ -24,10 +24,10 @@ SQSJobQueue is the queue implementation used by default. This may be overridden 
  SimpleJob::SQSJobQueue.config :queue_prefix => 'my-job'
  SimpleJob::SQSJobQueue.define_queue 'normal', :default => true
 
-=== Complex configuration with explicit queue implementation, non-rails-defined environment, and multiple queues
+=== Complex configuration with explicit queue implementation, non-rails-defined environment, multiple queues, and CloudWatch monitoring
 
  SimpleJob::JobQueue.config :implementation => 'sqs'
- SimpleJob::SQSJobQueue.config :queue_prefix => 'my-job', :environment => 'production'
+ SimpleJob::SQSJobQueue.config :queue_prefix => 'my-job', :environment => 'production', :cloud_watch_namespace => 'SimpleJob'
  SimpleJob::SQSJobQueue.define_queue 'normal', :visibility_timeout => 60, :default => true
  SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
  SimpleJob::SQSJobQueue.define_queue 'long-running', :visibility_timeout => 3600
@@ -63,6 +63,14 @@ If no namespace is provided to SimpleJob::SQSJobQueue.config, then no cloudwatch
 
 
 == Job Definition
+
+To define a job, simply include the SimpleJob::JobDefinition module, and implement its #execute method.
+
+Attributes declared using simple_job_attribute will be automatically serialized into the JSON message that's enqueued, and re-populated into the object once it's dequeued. They each have standard getters/setters defined by attr_accessor, and may be set upon object initialization by passing them as hash keys/values to #new.
+
+ActiveModel validation is supported and included automatically.
+
+=== Synopsis
 
  class FooSender
    include SimpleJob::JobDefinition
@@ -116,11 +124,11 @@ Alternatively, the queue may be attached to the job upfront for multiple enqueue
 
 == Job Server Usage
 
-Calling #poll on a queue instance will, by default, dispatch each job to the proper registered class based on type and version. Its options are passed through to the underlying implementation. In the case of the SQSJobQueue, poll accepts the options documented for the aws-sdk AWS::SQS::Queue#poll method.
+Calling #poll on a queue instance will, by default, dispatch each job to the proper registered class based on type and version. Its options are passed through to the underlying implementation. See SQSJobQueue::poll for documentation of the options it accepts.
 
  JobQueue.default.poll(:poll_interval => 1, :idle_timeout => 60)
 
-You can override the default behavior by passing a block to #poll that accepts both a job definition instance and an SQS message.
+You can override the default behavior by passing a block to #poll that accepts both a job definition instance and an SQS message. In this case, you must call "definition.execute" in the block. The default handler simply calls definition.execute.
 
  JobQueue.default.poll(:poll_interval => 1, :idle_timeout => 60) do |definition, message|
    logger.debug "received message: #{message.inspect}"

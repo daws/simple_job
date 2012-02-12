@@ -92,15 +92,14 @@ class SQSJobQueue < JobQueue
       :visibility_timeout => visibility_timeout,
       :attributes => [ :sent_at, :receive_count, :first_received_at ],
       :raise_exceptions => false,
-      :idle_timeout => nil
+      :idle_timeout => nil,
+      :poll_interval => DEFAULT_POLL_INTERVAL
     }.merge(options)
 
     message_handler = block || lambda do |definition, message|
       definition.execute
     end
 
-    poll_interval = options[:poll_interval] || DEFAULT_POLL_INTERVAL
-  
     exit_next = false
 
     logger.debug 'trapping terminate signals with function to exit loop'
@@ -135,7 +134,7 @@ class SQSJobQueue < JobQueue
         break if options[:idle_timeout] && ((Time.now - last_message_at) > options[:idle_timeout])
 
         unless last_message
-          Kernel.sleep(poll_interval) unless poll_interval == 0
+          Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
         end
       rescue Exception => e
         log_execution(false, last_message, current_job_type, current_start_milliseconds)
