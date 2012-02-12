@@ -6,6 +6,8 @@ A gem containing libraries that support running background jobs or tasks. It's d
 * Enqueue a job
 * Poll for and execute jobs
 
+It fits seamlessly into a rails environment (utilizing its configuration), but does not require one.
+
 It is architected to support multiple types of queue implementations, but currently, it only includes an implementation using AWS SQS (http://aws.amazon.com/sqs/). Alternate queue implementations could be plugged in by the client using lib/simple_job/sqs_job_queue.rb as an example.
 
 The AWS SQS queue implementation requires the aws-sdk gem, which must be initialized (by calling AWS.config) for this API to be capable of enqueuing or polling for jobs.
@@ -90,7 +92,9 @@ ActiveModel validation is supported and included automatically.
 
 === Typical usage of default queue
 
-You may call #enqueue with no arguments, in which case JobQueue.default will be used.
+You may call #enqueue with no arguments, in which case JobQueue.default will be used (defined by passing the :default option when defining the queue as documented in the QueueConfiguration section).
+
+Similar to ActiveRecord's save method, enqueue will return true or false depending on whether the object passes validation.
 
  f = FooSender.new(:target => 'joe', :foo_content => 'foo!')  # can also assign attributes with f.target=, f.foo_content=
  if f.enqueue
