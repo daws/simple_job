@@ -1,5 +1,11 @@
 = Simple Job
 
+== Version 0.1.0
+* Added AWS CloudWatch monitors for job execution
+* Added :replace_existing option to register_simple_job
+* Added signal handling to SQSJobQueue#poll to allow clean exit
+* New SQSJobQueue#poll implementation to allow metric gathering
+
 == Version 0.0.3
 * Properly handling SystemExit and SignalException in SQSJobQueue#poll so that process can be daemonized
 
