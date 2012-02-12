@@ -2,7 +2,11 @@ require 'socket'
 require 'fog'
 
 module SimpleJob
+
+# A SimpleJob::JobQueue implementation that uses AWS SQS
 class SQSJobQueue < JobQueue
+
+  DEFAULT_POLL_INTERVAL = 1
 
   # Registers this queue implementation with SimpleJob::JobQueue with identifier "sqs".
   register_job_queue 'sqs', self
@@ -53,42 +57,88 @@ class SQSJobQueue < JobQueue
     sqs_queue.send_message(message)
   end
 
+  # Polls the queue, matching incoming messages with registered jobs, and
+  # executing the proper job/version.
+  #
+  # If called without a block, it will simply call the #execute method of the
+  # matched job. A block may be passed to add custom logic, but in this case
+  # the caller is responsible for calling #execute. The block will be passed
+  # two arguments, the matching job definition (already populated with the
+  # contents of the message) and the raw AWS message.
+  #
+  # The queue's configured visibility timeout will be used unless the
+  # :visibility_timeout option is passed (as a number of seconds).
+  #
+  # By default, the message's 'sent_at', 'receive_count', and
+  # 'first_received_at' attributes will be populated in the AWS message, but
+  # this may be overridden by passing an array of symbols to the :attributes
+  # option.
+  #
+  # By default, errors during job execution or message polling will be logged
+  # and the polling will continue, but that behavior may be changed by setting
+  # the :raise_exceptions option to true.
+  #
+  # By defult, this method will poll indefinitely. If you pass an :idle_timeout
+  # option, the polling will stop and this method will return if that number
+  # of seconds passes without receiving a message. In both cases, the method
+  # will safely complete processing the current message and return if a HUP,
+  # INT, or TERM signal is sent to the process.
+  #
+  # Note that this method will override any signal handlers for the HUP, INT,
+  # or TERM signals during its execution, but the previous handlers will be
+  # restored once the method returns.
   def poll(options = {}, &block)
     options = {
       :visibility_timeout => visibility_timeout,
       :attributes => [ :sent_at, :receive_count, :first_received_at ],
       :raise_exceptions => false,
+      :idle_timeout => nil
     }.merge(options)
 
     message_handler = block || lambda do |definition, message|
       definition.execute
     end
 
+    poll_interval = options[:poll_interval] || DEFAULT_POLL_INTERVAL
+  
+    exit_next = false
+
+    logger.debug 'trapping terminate signals with function to exit loop'
+    signal_exit = lambda do
+      logger.info "caught signal to shutdown; finishing current message and quitting..."
+      exit_next = true
+    end
+    previous_traps = {}
+    ['HUP', 'INT', 'TERM'].each do |signal|
+      previous_traps[signal] = Signal.trap(signal, signal_exit)
+    end
+
+    last_message_at = Time.now
+
     loop do
       last_message = nil
-      current_job_type = ''
-      current_start_milliseconds = 0
+      current_start_milliseconds = get_milliseconds
+      current_job_type = 'unknown'
       begin
-        sqs_queue.poll(options) do |message|
+        sqs_queue.receive_messages(options) do |message|
           last_message = message
           raw_message = JSON.parse(message.body)
-
           current_job_type = raw_message['type']
-          current_start_milliseconds = get_milliseconds
-
           definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
           raise('no definition found') if !definition_class
           definition = definition_class.new.from_json(message.body)
           message_handler.call(definition, message)
-
-          log_execution(true, current_job_type, current_start_milliseconds)
         end
-        return
-      rescue SignalException, SystemExit => e
-        logger.info "received #{e.class}; exiting poll loop and re-raising: #{e.message}"
-        raise e
+
+        log_execution(true, last_message, current_job_type, current_start_milliseconds)
+
+        break if options[:idle_timeout] && ((Time.now - last_message_at) > options[:idle_timeout])
+
+        unless last_message
+          Kernel.sleep(poll_interval) unless poll_interval == 0
+        end
       rescue Exception => e
-        log_execution(false, current_job_type, current_start_milliseconds)
+        log_execution(false, last_message, current_job_type, current_start_milliseconds)
 
         if options[:raise_exceptions]
           raise e
@@ -98,7 +148,15 @@ class SQSJobQueue < JobQueue
           logger.error(e.backtrace.join("\n  "))
         end
       end
+      break if exit_next
     end
+
+    logger.debug 'restoring previous signal traps'
+    previous_traps.each do |signal, command|
+      Signal.trap(signal, command)
+    end
+
+    logger.info "shutdown successful"
   end
 
   private
@@ -124,53 +182,105 @@ class SQSJobQueue < JobQueue
     JobQueue.config[:logger]
   end
 
-  def get_milliseconds
-    (Time.now.to_f * 1000).round
+  def get_milliseconds(time = Time.now)
+    (time.to_f * 1000).round
   end
 
-  def log_execution(successful, job_type, start_milliseconds)
+  def log_execution(successful, message, job_type, start_milliseconds)
     if self.class.config[:cloud_watch_namespace]
       timestamp = DateTime.now.to_s
       environment = self.class.config[:environment]
       hostname = Socket.gethostbyname(Socket.gethostname).first
-      execution_time = get_milliseconds - start_milliseconds
-      dimensions = [
+
+      message_dimensions = [
         { 'Name' => 'Environment', 'Value' => environment }, 
         { 'Name' => 'SQSQueueName', 'Value' => queue_name },
-        { 'Name' => 'JobType', 'Value' => job_type },
         { 'Name' => 'Host', 'Value' => hostname },
       ]
 
-      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], [
+      job_dimensions = message_dimensions + [
+        { 'Name' => 'JobType', 'Value' => job_type },
+      ]
+
+      metric_data = [
         {
-          'MetricName' => 'ExecutionCount',
+          'MetricName' => 'MessageCheckCount',
           'Timestamp' => timestamp,
           'Unit' => 'Count',
           'Value' => 1,
-          'Dimensions' => dimensions
+          'Dimensions' => message_dimensions
         },
         {
-          'MetricName' => 'SuccessCount',
+          'MetricName' => 'MessageReceivedCount',
           'Timestamp' => timestamp,
           'Unit' => 'Count',
-          'Value' => successful ? 1 : 0,
-          'Dimensions' => dimensions
+          'Value' => message ? 1 : 0,
+          'Dimensions' => message_dimensions
         },
         {
-          'MetricName' => 'ErrorCount',
+          'MetricName' => 'MessageMissCount',
           'Timestamp' => timestamp,
           'Unit' => 'Count',
-          'Value' => successful ? 0 : 1,
-          'Dimensions' => dimensions
-        },
-        {
-          'MetricName' => 'ExecutionTime',
-          'Timestamp' => timestamp,
-          'Unit' => 'Milliseconds',
-          'Value' => execution_time,
-          'Dimensions' => dimensions
-        },
-      ] )
+          'Value' => message ? 0 : 1,
+          'Dimensions' => message_dimensions
+        }
+      ]
+       
+      if message
+        now = get_milliseconds
+
+        metric_data.concat([
+          {
+            'MetricName' => 'ExecutionCount',
+            'Timestamp' => timestamp,
+            'Unit' => 'Count',
+            'Value' => 1,
+            'Dimensions' => job_dimensions
+          },
+          {
+            'MetricName' => 'SuccessCount',
+            'Timestamp' => timestamp,
+            'Unit' => 'Count',
+            'Value' => successful ? 1 : 0,
+            'Dimensions' => job_dimensions
+          },
+          {
+            'MetricName' => 'ErrorCount',
+            'Timestamp' => timestamp,
+            'Unit' => 'Count',
+            'Value' => successful ? 0 : 1,
+            'Dimensions' => job_dimensions
+          },
+          {
+            'MetricName' => 'ExecutionTime',
+            'Timestamp' => timestamp,
+            'Unit' => 'Milliseconds',
+            'Value' => now - start_milliseconds,
+            'Dimensions' => job_dimensions
+          }
+        ])
+
+        if successful
+          metric_data.concat([
+            {
+              'MetricName' => 'TimeToCompletion',
+              'Timestamp' => timestamp,
+              'Unit' => 'Milliseconds',
+              'Value' => now - get_milliseconds(message.sent_at),
+              'Dimensions' => job_dimensions
+            },
+            {
+              'MetricName' => 'ExecutionAttempts',
+              'Timestamp' => timestamp,
+              'Unit' => 'Count',
+              'Value' => message.receive_count,
+              'Dimensions' => job_dimensions
+            }
+          ])
+        end
+      end
+
+      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], metric_data)
     end
   end
 

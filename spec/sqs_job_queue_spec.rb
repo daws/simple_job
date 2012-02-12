@@ -2,6 +2,8 @@ require 'spec_helper'
 
 include SimpleJob
 
+JobQueue.config[:logger].level = Logger::WARN
+
 describe SQSJobQueue do
 
   before(:all) do

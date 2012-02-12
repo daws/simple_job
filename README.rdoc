@@ -32,6 +32,35 @@ SQSJobQueue is the queue implementation used by default. This may be overridden 
  SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
  SimpleJob::SQSJobQueue.define_queue 'long-running', :visibility_timeout => 3600
 
+=== AWS CloudWatch monitoring
+
+If you provide a CloudWatch namespace to SimpleJob::SQSJobQueue.config, then a series of metrics will be saved to AWS CloudWatch by the queue's poll method:
+
+ SimpleJob::SQSJobQueue.config :cloud_watch_namespace => 'MyNamespace'
+
+The following metrics will be published:
+
+MessageCheckCount:: A count of the number of poll attempts
+MessageReceivedCount:: A count of the number of poll attempts that return a message
+MessageMissCount:: A count of the number of poll attempts that do not return a message
+ExecutionCount:: A count of the number of jobs that are executed
+SuccessCount:: A count of the number of jobs that are executed without error
+ErrorCount:: A count of the number of jobs that raise an exception during execution
+ExecutionTime:: The number of milliseconds it takes the job to execute
+TimeToCompletion:: The number milliseconds between when a job is requested and when it is successfully completed
+ExecutionAttempts:: The number of executions that occur before a job is successfully completed
+
+The metrics above are published using the following dimensions:
+
+Environment:: The current environment (ie. development vs. production)
+SQSQueueName:: The name of the SQS queue being polled
+Host:: The hostname of the machine running the poll operation
+JobType:: The string label for the type of job being executed
+
+Note that the JobType dimension will only be present on the ExecutionCount, SuccessCount, ErrorCount, ExecutionTime, TimeToCompletion, and ExecutionAttempts metrics.
+
+If no namespace is provided to SimpleJob::SQSJobQueue.config, then no cloudwatch metrics will be gathered or published.
+
 
 == Job Definition
 
