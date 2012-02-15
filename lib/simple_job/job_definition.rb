@@ -57,10 +57,10 @@ module JobDefinition
   end
 
   def type=(type)
-    if type.to_sym != self.type
-      raise "tried to deserialize object with type #{type}, but this object only " +
-        "supports type: #{self.type}"
-    end
+    #if type.to_sym != self.type
+    #  raise "tried to deserialize object with type #{type}, but this object only " +
+    #    "supports type: #{self.type}"
+    #end
   end
 
   def versions
@@ -72,10 +72,10 @@ module JobDefinition
   end
 
   def version=(version)
-    if !versions.include?(version.to_s)
-      raise "tried to deserialize object with version #{version}, but this object " +
-        "only supports versions: #{versions.join(", ")}"
-    end
+    #if !versions.include?(version.to_s)
+    #  raise "tried to deserialize object with version #{version}, but this object " +
+    #    "only supports versions: #{versions.join(", ")}"
+    #end
   end
 
   def enqueue(queue_type = nil)
