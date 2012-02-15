@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.2.0
+* Added :max_executions option to SQSJobQueue#poll
+* Bug fix to :replace_existing option of JobDefinition::register_simple_job declaration - wasn't properly leaving old definitions
+
 == Version 0.1.0
 * Added AWS CloudWatch monitors for job execution
 * Added :replace_existing option to register_simple_job
