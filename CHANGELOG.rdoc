@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.2.1
+* Disabling type/version checking to support multiple type declarations in one job
+
 == Version 0.2.0
 * Added :max_executions option to SQSJobQueue#poll
 * Bug fix to :replace_existing option of JobDefinition::register_simple_job declaration - wasn't properly leaving old definitions
