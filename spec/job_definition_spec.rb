@@ -151,4 +151,34 @@ describe JobDefinition do
 
   end
 
+  context 'a job definition that registers an alternate type name' do
+
+    before(:each) do
+      JobDefinition.job_definitions.clear
+
+      @foo_sender_class = Class.new do
+        class << self
+          def name; 'FooSender'; end
+        end
+        include JobDefinition
+        register_simple_job :type => 'alternate_foo_sender', :replace_existing => false
+      end
+    end
+
+    subject { @foo_sender_class }
+
+    it 'should match default name' do
+      JobDefinition.job_definition_class_for('foo_sender', '1').should == subject
+    end
+
+    it 'should match alternate name' do
+      JobDefinition.job_definition_class_for('alternate_foo_sender', '1').should == subject
+    end
+
+    it 'should return default name for type' do
+      subject.definition[:type].should == :foo_sender
+    end
+
+  end
+
 end

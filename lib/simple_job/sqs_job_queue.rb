@@ -93,7 +93,8 @@ class SQSJobQueue < JobQueue
       :attributes => [ :sent_at, :receive_count, :first_received_at ],
       :raise_exceptions => false,
       :idle_timeout => nil,
-      :poll_interval => DEFAULT_POLL_INTERVAL
+      :poll_interval => DEFAULT_POLL_INTERVAL,
+      :max_executions => nil
     }.merge(options)
 
     message_handler = block || lambda do |definition, message|
@@ -114,7 +115,9 @@ class SQSJobQueue < JobQueue
 
     last_message_at = Time.now
 
+    max_executions = options[:max_executions]
     loop do
+      break if max_executions && (max_executions <= 0)
       last_message = nil
       current_start_milliseconds = get_milliseconds
       current_job_type = 'unknown'
@@ -147,6 +150,7 @@ class SQSJobQueue < JobQueue
           logger.error(e.backtrace.join("\n  "))
         end
       end
+      max_executions -= 1 if max_executions
       break if exit_next
     end
 

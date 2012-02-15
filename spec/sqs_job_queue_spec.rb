@@ -16,6 +16,7 @@ describe SQSJobQueue do
 
   before(:each) do
     JobQueue.config :implementation => 'sqs'
+    JobDefinition.job_definitions.clear
 
     @foo_sender_class = Class.new do
       @executions = []
@@ -48,7 +49,7 @@ describe SQSJobQueue do
 
     it 'should be able to complete a round trip of enqueue and poll' do
       polling_thread = Thread.new do
-        subject.poll(:poll_interval => 0.1, :idle_timeout => 2)
+        subject.poll(:poll_interval => 0.5, :max_executions => 5)
       end
 
       foo = foo_sender_class.new(:target => 'joe', :foo_content => 'foo!')

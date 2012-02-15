@@ -129,23 +129,25 @@ module JobDefinition
     def register_simple_job(options = {})
       default_type = self.name.split('::').last.underscore.to_sym
 
-      replace_existing = options.delete(:replace_existing) || true
+      replace_existing = options.delete(:replace_existing)
+      replace_existing = true if replace_existing.nil?
 
-      @definition = {
+      new_definition = {
         :class => self,
         :type => default_type,
         :versions => [ '1' ],
       }.merge(options)
 
-      @definition[:type] = @definition[:type].to_sym
-      @definition[:versions] = Array(@definition[:versions])
-      @definition[:versions].collect! { |value| value.to_s }
+      new_definition[:type] = new_definition[:type].to_sym
+      new_definition[:versions] = Array(new_definition[:versions])
+      new_definition[:versions].collect! { |value| value.to_s }
 
       if replace_existing
-        ::SimpleJob::JobDefinition.job_definitions.delete_if { |item| item[:type] == default_type }
+        ::SimpleJob::JobDefinition.job_definitions.delete(@definition)
+        @definition = new_definition
       end
 
-      ::SimpleJob::JobDefinition.job_definitions << @definition
+      ::SimpleJob::JobDefinition.job_definitions << new_definition
     end
 
     def job_queue(queue_type = nil)
