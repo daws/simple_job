@@ -66,6 +66,9 @@ class SQSJobQueue < JobQueue
   # two arguments, the matching job definition (already populated with the
   # contents of the message) and the raw AWS message.
   #
+  # The #execute method MAY have a parameter, which will be populated with
+  # the raw AWS::SQS::ReceivedMessage object if it exists.
+  #
   # The queue's configured visibility timeout will be used unless the
   # :visibility_timeout option is passed (as a number of seconds).
   #
@@ -83,6 +86,9 @@ class SQSJobQueue < JobQueue
   # of seconds passes without receiving a message. In both cases, the method
   # will safely complete processing the current message and return if a HUP,
   # INT, or TERM signal is sent to the process.
+  #
+  # You may also pass a :max_executions option (as an integer), in which case
+  # the poll method will poll that many times and then exit.
   #
   # Note that this method will override any signal handlers for the HUP, INT,
   # or TERM signals during its execution, but the previous handlers will be
