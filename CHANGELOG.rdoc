@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.3.0
+* Allowing JobDefinition#execute method to take a message parameter
+* Adding max_attempt_count declaration to JobDefinition
+
 == Version 0.2.1
 * Disabling type/version checking to support multiple type declarations in one job
 
