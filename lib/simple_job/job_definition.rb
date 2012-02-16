@@ -150,6 +150,11 @@ module JobDefinition
       ::SimpleJob::JobDefinition.job_definitions << new_definition
     end
 
+    def max_attempt_count(attempts = nil)
+      @max_attempt_count = attempts if attempts 
+      @max_attempt_count
+    end
+
     def job_queue(queue_type = nil)
       @job_queue = JobQueue[queue_type] if queue_type
       @job_queue

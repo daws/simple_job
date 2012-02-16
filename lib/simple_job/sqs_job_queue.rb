@@ -98,7 +98,12 @@ class SQSJobQueue < JobQueue
     }.merge(options)
 
     message_handler = block || lambda do |definition, message|
-      definition.execute
+      execute_method = definition.method(:execute)
+      arguments = []
+      if execute_method.arity >= 1
+        arguments << message
+      end
+      execute_method.call(*arguments)
     end
 
     exit_next = false
@@ -127,7 +132,13 @@ class SQSJobQueue < JobQueue
           raw_message = JSON.parse(message.body)
           current_job_type = raw_message['type']
           definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
+
           raise('no definition found') if !definition_class
+
+          if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
+            raise('max attempt count reached') 
+          end
+
           definition = definition_class.new.from_json(message.body)
           message_handler.call(definition, message)
         end

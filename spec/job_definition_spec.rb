@@ -14,9 +14,7 @@ describe JobDefinition do
       end
     end
 
-    subject {
-      @bare_job.new
-    }
+    subject { @bare_job.new }
 
     it { should be_valid }
 
@@ -177,6 +175,28 @@ describe JobDefinition do
 
     it 'should return default name for type' do
       subject.definition[:type].should == :foo_sender
+    end
+
+  end
+
+  context 'a job definition instance that declares a max attempt count' do
+
+    before(:each) do
+      JobDefinition.job_definitions.clear
+
+      @foo_sender_class = Class.new do
+        class << self
+          def name; 'FooSender'; end
+        end
+        include JobDefinition
+        max_attempt_count 3
+      end
+    end
+
+    subject { @foo_sender_class.new }
+
+    it 'should store the max attempt count' do
+      subject.class.max_attempt_count.should == 3
     end
 
   end
