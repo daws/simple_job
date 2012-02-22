@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.4.0
+* Made JobDefinition#job_definition_class_for more resilient to input types
+* Added #class_for alias to JobDefinition#job_definition_class_for
+
 == Version 0.3.0
 * Allowing JobDefinition#execute method to take a message parameter
 * Adding max_attempt_count declaration to JobDefinition
