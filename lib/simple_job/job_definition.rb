@@ -20,6 +20,28 @@ module JobDefinition
 
   end
 
+  class << self
+
+    def job_definition_class_for(type, version)
+      type = type.to_s.underscore.to_sym
+      version = version.to_s
+
+      @job_definitions.each do |definition|
+        if (definition[:type] == type) && (definition[:versions].include?(version))
+          return definition[:class]
+        end
+      end
+      nil
+    end
+
+    alias :class_for :job_definition_class_for
+
+    def job_definitions
+      @job_definitions ||= []
+    end
+
+  end
+
   # should be overridden by including classes
   if !method_defined?(:execute)
     def execute
@@ -103,19 +125,6 @@ module JobDefinition
     attributes.each do |key, value|
       send("#{key}=", value)
     end
-  end
-
-  def self.job_definition_class_for(type, version)
-    @job_definitions.each do |definition|
-      if (definition[:type] == type.to_sym) && (definition[:versions].include?(version))
-        return definition[:class]
-      end
-    end
-    nil
-  end
-
-  def self.job_definitions
-    @job_definitions ||= []
   end
 
   private
