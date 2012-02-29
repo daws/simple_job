@@ -176,7 +176,7 @@ class SQSJobQueue < JobQueue
           Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
         end
       rescue Exception => e
-        log_execution(false, last_message, current_job_type, current_start_milliseconds)
+        log_execution(false, last_message, current_job_type, current_start_milliseconds) rescue nil
 
         if options[:raise_exceptions]
           raise e
