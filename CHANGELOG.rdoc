@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.5.3
+* Fixed edge case where cloudwatch exception could break SQSJobQueue#poll
+
 == Version 0.5.2
 * Fixed handling of sparse queue when using :asynchronous_execute implementation
 
