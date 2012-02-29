@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.5.0
+* Added :asynchronous_execute option to SQSJobQueue#poll
+
 == Version 0.4.0
 * Made JobDefinition#job_definition_class_for more resilient to input types
 * Added #class_for alias to JobDefinition#job_definition_class_for
