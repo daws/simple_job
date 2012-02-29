@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.5.2
+* Fixed handling of sparse queue when using :asynchronous_execute implementation
+
 == Version 0.5.1
 * Fixed bug in :asynchronous_execute implementation
 
