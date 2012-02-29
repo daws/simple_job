@@ -30,15 +30,26 @@ class SQSJobQueue < JobQueue
     @default_queue || super
   end
 
+  # Sets up an SQS queue, using the given type as a unique identifier for the name.
+  #
+  # A :visibility_timeout option may be passed to override the visibility timeout
+  # that is used when polling the queue.
+  #
+  # The :asynchronous_execute option, if set to true, will cause the poll method to
+  # parse and immediately accept each message (if it's validly formatted). It will
+  # then execute the proper job (outside the receive_message block). This can be
+  # used when you have long-running jobs that will exceed the visibility timeout,
+  # and it is not critical that they be retried when they fail.
   def self.define_queue(type, options = {})
     type = type.to_s
 
     options = {
       :visibility_timeout => config[:default_visibility_timeout],
+      :asynchronous_execute => false,
       :default => false,
     }.merge(options)
 
-    queue = self.new(type, options[:visibility_timeout])
+    queue = self.new(type, options[:visibility_timeout], options[:asynchronous_execute])
     self.queues ||= {}
     self.queues[type] = queue
 
@@ -130,6 +141,7 @@ class SQSJobQueue < JobQueue
     loop do
       break if max_executions && (max_executions <= 0)
       last_message = nil
+      last_definition = nil
       current_start_milliseconds = get_milliseconds
       current_job_type = 'unknown'
       begin
@@ -146,8 +158,15 @@ class SQSJobQueue < JobQueue
           end
 
           definition = definition_class.new.from_json(message.body)
-          message_handler.call(definition, message)
+          last_definition = definition
+
+          # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
+          # vis. timeout if this fails or runs too long)
+          message_handler.call(definition, message) unless asynchronous_execute
         end
+
+        # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
+        message_handler.call(definition, message) if asynchronous_execute
 
         log_execution(true, last_message, current_job_type, current_start_milliseconds)
 
@@ -185,13 +204,14 @@ class SQSJobQueue < JobQueue
     attr_accessor :queues
   end
 
-  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :cloud_watch
+  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch
 
-  def initialize(type, visibility_timeout)
+  def initialize(type, visibility_timeout, asynchronous_execute)
     sqs = ::AWS::SQS.new
     self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
     self.sqs_queue = sqs.queues.create(queue_name)
     self.visibility_timeout = visibility_timeout
+    self.asynchronous_execute = asynchronous_execute
     self.cloud_watch = Fog::AWS::CloudWatch.new(
       :aws_access_key_id => AWS.config.access_key_id,
       :aws_secret_access_key => AWS.config.secret_access_key
