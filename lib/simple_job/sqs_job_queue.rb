@@ -1,4 +1,6 @@
 require 'socket'
+
+require 'aws-sdk'
 require 'fog'
 
 module SimpleJob
