@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.5.4
+* Requiring aws-sdk in SQSJobQueue
+
 == Version 0.5.3
 * Fixed edge case where cloudwatch exception could break SQSJobQueue#poll
 
