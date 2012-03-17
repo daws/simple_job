@@ -77,6 +77,14 @@ describe JobDefinition do
       subject.should respond_to(:foo, :foo=, :bar, :bar=)
     end
 
+    it 'should have a logger method on its class' do
+      subject.class.should respond_to(:logger)
+    end
+
+    it 'should have a logger' do
+      subject.should respond_to(:logger)
+    end
+
   end
 
   context 'a simple class including JobDefinition' do

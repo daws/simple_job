@@ -1,3 +1,4 @@
+require 'logger'
 require 'active_model'
 require 'active_support/inflector'
 
@@ -127,7 +128,47 @@ module JobDefinition
     end
   end
 
+  def logger
+    self.class.logger
+  end
+
   private
+
+  class JobLoggerWrapper
+
+    def initialize(logger, job_name)
+      @logger = logger
+      @job_name = job_name
+    end
+
+    def method_missing(symbol, *args, &block)
+      @logger.send symbol, *args, &block
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
+      if message.nil? && !block_given?
+        message = progname
+        progname = nil
+      end
+
+      progname ||= @job_name
+
+      @logger.add(severity, message, progname, &block)
+    end
+
+    alias :log :add
+
+    [
+      ['debug', Logger::DEBUG],
+      ['info', Logger::INFO],
+      ['warn', Logger::WARN],
+      ['error', Logger::ERROR],
+      ['fatal', Logger::FATAL]
+    ].each do |method_name, log_level|
+      class_eval "def #{method_name}(progname = nil, &block); add(#{log_level}, nil, progname, &block); end"
+    end
+
+  end
 
   module ClassMethods
 
@@ -193,6 +234,10 @@ module JobDefinition
           end
         __EOF__
       end
+    end
+
+    def logger
+      @logger ||= JobLoggerWrapper.new(SimpleJob::JobQueue.config[:logger], definition[:type])
     end
 
   end
