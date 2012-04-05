@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.6.1
+* Updating :asynchronous_execute option to fork a separate process
+
 == Version 0.6.0
 * Added #logger method to classes that include JobDefinition and instances of that class; it returns a logger wrapper that:
   * Wraps and uses JobQueue.config[:logger]
