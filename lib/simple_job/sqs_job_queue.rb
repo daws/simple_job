@@ -39,7 +39,7 @@ class SQSJobQueue < JobQueue
   #
   # The :asynchronous_execute option, if set to true, will cause the poll method to
   # parse and immediately accept each message (if it's validly formatted). It will
-  # then execute the proper job (outside the receive_message block). This can be
+  # then fork and execute the proper job in a separate process. This can be
   # used when you have long-running jobs that will exceed the visibility timeout,
   # and it is not critical that they be retried when they fail.
   def self.define_queue(type, options = {})
@@ -168,15 +168,28 @@ class SQSJobQueue < JobQueue
         end
 
         # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
-        message_handler.call(last_definition, last_message) if asynchronous_execute && last_message
-
-        log_execution(true, last_message, current_job_type, current_start_milliseconds)
+        if asynchronous_execute && last_message
+          pid = fork
+          if pid
+            # in parent
+            Process.detach pid
+          else
+            # in child
+            message_handler.call(last_definition, last_message)
+            log_execution(true, last_message, current_job_type, current_start_milliseconds)
+            exit
+          end
+        else
+          log_execution(true, last_message, current_job_type, current_start_milliseconds)
+        end
 
         break if options[:idle_timeout] && ((Time.now - last_message_at) > options[:idle_timeout])
 
         unless last_message
           Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
         end
+      rescue SystemExit => e
+        raise e
       rescue Exception => e
         log_execution(false, last_message, current_job_type, current_start_milliseconds) rescue nil
 
