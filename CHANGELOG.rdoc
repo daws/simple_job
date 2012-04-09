@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.6.2
+* Fixing :asynchronous_execute threading issues
+
 == Version 0.6.1
 * Updating :asynchronous_execute option to fork a separate process
 
