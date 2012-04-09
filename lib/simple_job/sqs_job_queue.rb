@@ -175,8 +175,13 @@ class SQSJobQueue < JobQueue
             Process.detach pid
           else
             # in child
-            message_handler.call(last_definition, last_message)
-            log_execution(true, last_message, current_job_type, current_start_milliseconds)
+            begin
+              message_handler.call(last_definition, last_message)
+              log_execution(true, last_message, current_job_type, current_start_milliseconds)
+            rescue Exception => e
+              logger.error("error executing asynchronous job: #{e.message}")
+              logger.error e.backtrace.join("\n  ")
+            end
             exit
           end
         else
