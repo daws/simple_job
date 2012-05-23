@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.7.0
+* Making JobDefinition objects usable in Rails form_for
+
 == Version 0.6.2
 * Fixing :asynchronous_execute threading issues
 
