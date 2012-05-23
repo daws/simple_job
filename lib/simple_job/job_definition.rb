@@ -12,7 +12,10 @@ module JobDefinition
     klass.extend(ClassMethods)
 
     klass.class_eval do
+      include ::ActiveModel::Naming
+      include ::ActiveModel::Conversion
       include ::ActiveModel::Validations
+      include ::ActiveModel::Validations::Callbacks
       include ::ActiveModel::Serializers::JSON
     end
 
@@ -130,6 +133,11 @@ module JobDefinition
 
   def logger
     self.class.logger
+  end
+
+  # for activemodel so form_for will work
+  def persisted?
+    false
   end
 
   private
