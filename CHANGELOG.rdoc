@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.7.1
+* Fixing :idle_timeout (wasn't resetting timeout on new messages)
+* Fixing traps for ruby > 1.8 (new rubys add arguments to trap)
+
 == Version 0.7.0
 * Making JobDefinition objects usable in Rails form_for
 
