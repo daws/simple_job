@@ -128,7 +128,7 @@ class SQSJobQueue < JobQueue
     exit_next = false
 
     logger.debug 'trapping terminate signals with function to exit loop'
-    signal_exit = lambda do
+    signal_exit = lambda do |*args|
       logger.info "caught signal to shutdown; finishing current message and quitting..."
       exit_next = true
     end
@@ -149,6 +149,7 @@ class SQSJobQueue < JobQueue
       begin
         sqs_queue.receive_messages(options) do |message|
           last_message = message
+          last_message_at = Time.now
           raw_message = JSON.parse(message.body)
           current_job_type = raw_message['type']
           definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
