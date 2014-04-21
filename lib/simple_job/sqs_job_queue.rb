@@ -103,6 +103,10 @@ class SQSJobQueue < JobQueue
   # You may also pass a :max_executions option (as an integer), in which case
   # the poll method will poll that many times and then exit.
   #
+  # If poll_interval is set, polling will pause for poll_interval seconds when there are no
+  # available messages.  If always_sleep is set to true, then polling will pause
+  # after every message is received, even if there are more available messages.
+  #
   # Note that this method will override any signal handlers for the HUP, INT,
   # or TERM signals during its execution, but the previous handlers will be
   # restored once the method returns.
@@ -113,7 +117,8 @@ class SQSJobQueue < JobQueue
       :raise_exceptions => false,
       :idle_timeout => nil,
       :poll_interval => DEFAULT_POLL_INTERVAL,
-      :max_executions => nil
+      :max_executions => nil,
+      :always_sleep => false
     }.merge(options)
 
     message_handler = block || lambda do |definition, message|
@@ -191,7 +196,7 @@ class SQSJobQueue < JobQueue
 
         break if options[:idle_timeout] && ((Time.now - last_message_at) > options[:idle_timeout])
 
-        unless last_message
+        if options[:always_sleep] || !last_message
           Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
         end
       rescue SystemExit => e
