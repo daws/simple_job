@@ -262,7 +262,6 @@ class SQSJobQueue < JobQueue
         { 'Name' => 'Environment', 'Value' => environment }, 
         { 'Name' => 'SQSQueueName', 'Value' => queue_name },
         { 'Name' => 'Host', 'Value' => hostname },
-        { 'Name' => 'ProcessID', 'Value' => Process.pid },
       ]
 
       job_dimensions = message_dimensions + [
