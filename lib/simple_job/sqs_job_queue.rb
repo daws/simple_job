@@ -145,7 +145,10 @@ class SQSJobQueue < JobQueue
     last_message_at = Time.now
 
     max_executions = options[:max_executions]
+    last_heartbeat = get_milliseconds
     loop do
+      last_heartbeat = log_heartbeat(last_heartbeat)
+       
       break if max_executions && (max_executions <= 0)
       last_message = nil
       last_definition = nil
@@ -252,6 +255,30 @@ class SQSJobQueue < JobQueue
     (time.to_f * 1000).round
   end
 
+  def log_heartbeat(last)
+    now = get_milliseconds
+    if self.class.config[:cloud_watch_namespace]
+      message_dimensions = [
+        { 'Name' => 'Environment', 'Value' => self.class.config[:environment] }, 
+        { 'Name' => 'SQSQueueName', 'Value' => queue_name },
+        { 'Name' => 'Host', 'Value' => Socket.gethostbyname(Socket.gethostname).first },
+        { 'Name' => 'ProcessID', 'Value' => Process.pid },
+      ]
+
+      metric_data = [
+        {
+          'MetricName' => 'Heartbeat',
+          'Timestamp' => DateTime.now.to_s,
+          'Unit' => 'Milliseconds',
+          'Value' => now - last,
+          'Dimensions' => message_dimensions
+        }
+      ]
+      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], metric_data)
+    end
+    now
+  end
+
   def log_execution(successful, message, job_type, start_milliseconds)
     if self.class.config[:cloud_watch_namespace]
       timestamp = DateTime.now.to_s
@@ -262,6 +289,7 @@ class SQSJobQueue < JobQueue
         { 'Name' => 'Environment', 'Value' => environment }, 
         { 'Name' => 'SQSQueueName', 'Value' => queue_name },
         { 'Name' => 'Host', 'Value' => hostname },
+        { 'Name' => 'ProcessID', 'Value' => Process.pid },
       ]
 
       job_dimensions = message_dimensions + [
