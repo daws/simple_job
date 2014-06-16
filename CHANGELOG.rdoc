@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.8.1
+* Loosened requirement on activemodel and activesupport
+
 == Version 0.8.0
 * Added :always_sleep option to sleep between message processing even when there are available messages
 
