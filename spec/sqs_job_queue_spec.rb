@@ -9,7 +9,7 @@ describe SQSJobQueue do
   before(:all) do
     AWS.config(:access_key_id => ENV['AWS_ACCESS_KEY_ID'], :secret_access_key => ENV['AWS_SECRET_ACCESS_KEY'])
 
-    SimpleJob::SQSJobQueue.config :queue_prefix => ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX']
+    SimpleJob::SQSJobQueue.config :queue_prefix => 'simple-job'
     @normal_queue = SimpleJob::SQSJobQueue.define_queue 'normal', :default => true
     @high_priority_queue = SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
   end
