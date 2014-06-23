@@ -3,18 +3,35 @@ class TestJobQueue < JobQueue
 
   register_job_queue 'test', self
 
-  def initialize(type)
-    @type = type
-    @jobs = []
-  end
-
   def self.default_queue
     get_queue('default')
   end
 
   def self.get_queue(type, options = {})
+    queues[type] ||= TestJobQueue.new(type)
+  end
+
+  def self.queues
     @queues ||= {}
-    @queues[type] ||= TestJobQueue.new(type)
+  end
+
+  def self.clear!
+    queues.each_value do |queue|
+      queue.clear!
+    end
+  end
+
+  def self.jobs(type = 'default')
+    get_queue(type).jobs
+  end
+
+  def initialize(type)
+    @type = type
+    @jobs = []
+  end
+
+  def clear!
+    @jobs.clear
   end
 
   def enqueue(message, options = {})
@@ -31,10 +48,6 @@ class TestJobQueue < JobQueue
 
   def jobs
     @jobs.dup
-  end
-
-  def self.jobs(type = 'default')
-    get_queue(type).jobs
   end
 
 end
