@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.9.1
+* Added clear! to TestJobQueue
+
 == Version 0.9.0
 * Added TestJobQueue implementation
 
