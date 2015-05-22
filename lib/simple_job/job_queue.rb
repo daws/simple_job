@@ -1,5 +1,5 @@
 require 'logger'
-require 'aws-sdk'
+require 'aws-sdk-v1'
 
 # Requires the aws-sdk gem, which must be initialized for this API to be capable of queuing requests.
 #
