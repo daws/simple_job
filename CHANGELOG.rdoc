@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.11.0
+* Using explicit aws-sdk-v1 to allow apps dependent on this library to use both v1 and v2 of aws sdk
+
 == Version 0.10.0
 * Added ability to pass through send_message options (such as delay_seconds) to SQS when enqueuing jobs
 
