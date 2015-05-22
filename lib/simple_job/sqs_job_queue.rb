@@ -67,7 +67,7 @@ class SQSJobQueue < JobQueue
 
   def enqueue(message, options = {})
     raise("enqueue expects a raw string") unless message.is_a?(String)
-    sqs_queue.send_message(message)
+    sqs_queue.send_message(message, options)
   end
 
   # Polls the queue, matching incoming messages with registered jobs, and
