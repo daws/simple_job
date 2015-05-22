@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.10.0
+* Added ability to pass through send_message options (such as delay_seconds) to SQS when enqueuing jobs
+
 == Version 0.9.1
 * Added clear! to TestJobQueue
 
