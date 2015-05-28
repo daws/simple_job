@@ -3,3 +3,4 @@ gems_dev/
 .rbx/
 .bundle
 *.swp
+log/*.log

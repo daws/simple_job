@@ -1,24 +1,54 @@
 require 'spec_helper'
 
-include SimpleJob
+require 'ostruct'
 
-JobQueue.config[:logger].level = Logger::WARN
-
-describe SQSJobQueue do
+describe SimpleJob::SQSJobQueue do
 
   before(:all) do
-    AWS.config(:access_key_id => ENV['AWS_ACCESS_KEY_ID'], :secret_access_key => ENV['AWS_SECRET_ACCESS_KEY'])
-
-    SimpleJob::SQSJobQueue.config :queue_prefix => 'simple-job'
-    @normal_queue = SimpleJob::SQSJobQueue.define_queue 'normal', :default => true
-    @high_priority_queue = SimpleJob::SQSJobQueue.define_queue 'high-priority', :visibility_timeout => 10
+    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test'
+    SimpleJob::JobQueue.config implementation: 'sqs'
   end
 
   before(:each) do
-    JobQueue.config :implementation => 'sqs'
-    JobDefinition.job_definitions.clear
+    allow(AWS::SQS).to receive(:new) { sqs }
+    allow(Fog::AWS::CloudWatch).to receive(:new) { nil }
+    SimpleJob::JobDefinition.job_definitions.clear
+  end
 
-    @foo_sender_class = Class.new do
+  let(:sqs) { double('SQS', queues: sqs_queues) }
+  let(:sqs_queues) do
+    Class.new do
+      def initialize(sqs_queue_class)
+        @sqs_queue_class = sqs_queue_class
+        @queues = {}
+      end
+      def create(name)
+        @queues[name] ||= @sqs_queue_class.new
+      end
+    end.new(sqs_queue_class)
+  end
+  let(:sqs_queue_class) do
+    Class.new do
+      attr_reader :messages
+      def initialize
+        @messages = []
+      end
+      def send_message(message, options = {})
+        @messages << message
+      end
+      def receive_messages(options = {})
+        @messages.each do |message|
+          yield(OpenStruct.new(body: message))
+        end
+        @messages.clear
+      end
+    end
+  end
+
+  let!(:normal_queue) { SimpleJob::SQSJobQueue.define_queue 'normal', default: true, accept_nested_definition: 'NotificationMetadata' }
+  let!(:high_priority_queue) { SimpleJob::SQSJobQueue.define_queue 'high-priority', visibility_timeout: 10 }
+  let!(:foo_sender_class) do
+    Class.new do
       @executions = []
       class << self
         attr_accessor :executions
@@ -26,7 +56,7 @@ describe SQSJobQueue do
       end
       include JobDefinition
       simple_job_attribute :target, :foo_content
-      validates :target, :presence => true
+      validates :target, presence: true
       def execute
         self.class.executions << self
       end
@@ -36,37 +66,59 @@ describe SQSJobQueue do
     end
   end
 
-  let(:normal_queue) { @normal_queue }
-  let(:high_priority_queue) { @high_priority_queue }
-  let(:foo_sender_class) { @foo_sender_class }
-
   context 'default queue' do
 
-    subject { @normal_queue }
+    subject { normal_queue }
 
-    it { should == JobQueue.default }
-    it { should == JobQueue['normal'] }
+    it { is_expected.to eq(SimpleJob::JobQueue.default) }
+    it { is_expected.to eq(SimpleJob::JobQueue['normal']) }
 
     it 'should be able to complete a round trip of enqueue and poll' do
-      polling_thread = Thread.new do
-        subject.poll(:poll_interval => 0.5, :max_executions => 5)
-      end
-
-      foo = foo_sender_class.new(:target => 'joe', :foo_content => 'foo!')
+      foo = foo_sender_class.new(target: 'joe', foo_content: 'foo!')
       foo.enqueue
-      polling_thread.join
+      subject.poll(max_executions: 1)
 
-      foo_sender_class.executions.should == [ foo ]
+      expect(foo_sender_class.executions).to eq([foo])
     end
 
   end
 
   context 'high priority queue' do
 
-    subject { @high_priority_queue }
+    subject { high_priority_queue }
     
-    it { should == JobQueue['high-priority'] }
+    it { is_expected.to eq(SimpleJob::JobQueue['high-priority']) }
 
   end
+
+  shared_examples 'a standard message' do |message|
+
+    before(:each) do
+      normal_queue.enqueue(message.to_json)
+      normal_queue.poll(max_executions: 1)
+    end
+
+    it 'should execute FooSender' do
+      expect(foo_sender_class.executions.size).to eq(1)
+    end
+
+  end
+
+  context 'standard message' do
+
+    it_should_behave_like 'a standard message', { type: 'foo_sender', version: '1' }
+
+  end
+
+  context 'message constructed by auto scaling' do
+    
+    it_should_behave_like 'a standard message',
+      {
+        AutoScalingGroupName: 'stash_website_production_1',
+        NotificationMetadata: { type: 'foo_sender', version: '1' }.to_json
+      }
+
+  end
+
 
 end
