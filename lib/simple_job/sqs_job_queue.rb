@@ -172,24 +172,29 @@ class SQSJobQueue < JobQueue
       begin
         sqs_queue.receive_messages(options) do |message|
           message_body = get_message_body(message)
-          last_message = message
-          last_message_at = Time.now
           raw_message = JSON.parse(message_body)
-          current_job_type = raw_message['type']
-          definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
 
-          raise('no definition found') if !definition_class
+          if raw_message['type'] && raw_message['version']
+            last_message = message
+            last_message_at = Time.now
+            current_job_type = raw_message['type']
+            definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
 
-          if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
-            raise('max attempt count reached') 
+            raise('no definition found') if !definition_class
+
+            if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
+              raise('max attempt count reached') 
+            end
+
+            definition = definition_class.new.from_json(message_body)
+            last_definition = definition
+
+            # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
+            # vis. timeout if this fails or runs too long)
+            message_handler.call(definition, message) unless asynchronous_execute
+          else
+            logger.info("ignoring invalid message: #{message_body}")
           end
-
-          definition = definition_class.new.from_json(message_body)
-          last_definition = definition
-
-          # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
-          # vis. timeout if this fails or runs too long)
-          message_handler.call(definition, message) unless asynchronous_execute
         end
 
         # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
@@ -378,7 +383,7 @@ class SQSJobQueue < JobQueue
       result = message_hash[accept_nested_definition]
     end
 
-    result
+    result || '{}'
   end
 
 end
