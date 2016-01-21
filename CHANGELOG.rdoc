@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.12.1
+* Ignoring messages that don't look like valid job definitions
+
 == Version 0.12.0
 * Added accept_nested_definition option to SQSJobQueue
 * Updating specs and eliminating their dependency on AWS
