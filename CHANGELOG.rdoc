@@ -1,5 +1,9 @@
 = Simple Job
 
+== Version 0.13.0
+* Remove fog dependency
+* Upgrade rspec framework
+
 == Version 0.12.1
 * Ignoring messages that don't look like valid job definitions
 
