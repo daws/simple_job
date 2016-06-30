@@ -1,7 +1,6 @@
 require 'socket'
 
 require 'aws-sdk-v1'
-require 'fog'
 
 module SimpleJob
 
@@ -74,7 +73,7 @@ class SQSJobQueue < JobQueue
     self.queues[type] = queue
 
     @default_queue = queue if make_default
-    
+
     queue
   end
 
@@ -183,7 +182,7 @@ class SQSJobQueue < JobQueue
             raise('no definition found') if !definition_class
 
             if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
-              raise('max attempt count reached') 
+              raise('max attempt count reached')
             end
 
             definition = definition_class.new.from_json(message_body)
@@ -262,10 +261,7 @@ class SQSJobQueue < JobQueue
     self.sqs_queue = sqs.queues.create(queue_name)
     self.visibility_timeout = visibility_timeout
     self.asynchronous_execute = asynchronous_execute
-    self.cloud_watch = Fog::AWS::CloudWatch.new(
-      :aws_access_key_id => AWS.config.access_key_id,
-      :aws_secret_access_key => AWS.config.secret_access_key
-    )
+    self.cloud_watch = AWS::CloudWatch.new
     self.accept_nested_definition = accept_nested_definition
   end
 
@@ -284,7 +280,7 @@ class SQSJobQueue < JobQueue
       hostname = Socket.gethostbyname(Socket.gethostname).first
 
       message_dimensions = [
-        { 'Name' => 'Environment', 'Value' => environment }, 
+        { 'Name' => 'Environment', 'Value' => environment },
         { 'Name' => 'SQSQueueName', 'Value' => queue_name },
         { 'Name' => 'Host', 'Value' => hostname },
       ]
@@ -316,7 +312,7 @@ class SQSJobQueue < JobQueue
           'Dimensions' => message_dimensions
         }
       ]
-       
+
       if message
         now = get_milliseconds
 
@@ -371,7 +367,7 @@ class SQSJobQueue < JobQueue
         end
       end
 
-      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], metric_data)
+      cloud_watch.put_metric_data(namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data)
     end
   end
 

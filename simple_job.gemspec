@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.email = %q{daws23@gmail.com}
   s.homepage = %q{https://github.com/daws/simple_job}
   s.require_paths = [ 'lib' ]
-  
+
   # documentation
   s.has_rdoc = true
   s.extra_rdoc_files = %w( README.rdoc CHANGELOG.rdoc LICENSE.txt )
@@ -27,6 +27,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'activemodel', '>= 3.0'
   s.add_dependency 'activesupport', '>= 3.0'
   s.add_dependency 'aws-sdk-v1', '~> 1.2'
-  s.add_dependency 'fog', '~> 1.1'
 
 end

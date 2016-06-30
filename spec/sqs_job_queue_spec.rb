@@ -1,21 +1,16 @@
-require 'spec_helper'
-
-require 'ostruct'
-
-describe SimpleJob::SQSJobQueue do
+RSpec.describe SimpleJob::SQSJobQueue do
 
   before(:all) do
-    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test'
+    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'tests'
     SimpleJob::JobQueue.config implementation: 'sqs'
   end
 
   before(:each) do
-    allow(AWS::SQS).to receive(:new) { sqs }
-    allow(Fog::AWS::CloudWatch).to receive(:new) { nil }
+    allow(AWS::SQS).to receive_messages(new: sqs)
     SimpleJob::JobDefinition.job_definitions.clear
   end
 
-  let(:sqs) { double('SQS', queues: sqs_queues) }
+  let(:sqs) { instance_double(AWS::SQS, queues: sqs_queues) }
   let(:sqs_queues) do
     Class.new do
       def initialize(sqs_queue_class)
@@ -54,7 +49,7 @@ describe SimpleJob::SQSJobQueue do
         attr_accessor :executions
         def name; 'FooSender'; end
       end
-      include JobDefinition
+      include SimpleJob::JobDefinition
       simple_job_attribute :target, :foo_content
       validates :target, presence: true
       def execute
@@ -86,7 +81,7 @@ describe SimpleJob::SQSJobQueue do
   context 'high priority queue' do
 
     subject { high_priority_queue }
-    
+
     it { is_expected.to eq(SimpleJob::JobQueue['high-priority']) }
 
   end
@@ -111,11 +106,11 @@ describe SimpleJob::SQSJobQueue do
   end
 
   context 'message constructed by auto scaling' do
-    
+
     it_should_behave_like 'a standard message',
       {
         AutoScalingGroupName: 'stash_website_production_1',
-        NotificationMetadata: { type: 'foo_sender', version: '1' }.to_json
+        NotificationMetadata: JSON.dump(type: 'foo_sender', version: '1')
       }
 
   end

@@ -4,3 +4,6 @@ gems_dev/
 .bundle
 *.swp
 log/*.log
+bundle/
+coverage/
+.byebug_history
