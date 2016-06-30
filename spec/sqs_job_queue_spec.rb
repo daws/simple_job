@@ -1,9 +1,7 @@
-require 'spec_helper'
-
 require 'json'
 require 'ostruct'
 
-describe SimpleJob::SQSJobQueue do
+RSpec.describe SimpleJob::SQSJobQueue do
 
   before(:all) do
     SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test'

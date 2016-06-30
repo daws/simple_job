@@ -24,7 +24,9 @@ GEM
       json (~> 1.4)
       nokogiri (>= 1.4.4)
     builder (3.2.2)
+    byebug (9.0.5)
     diff-lcs (1.2.5)
+    docile (1.1.5)
     excon (0.45.4)
     fission (0.5.0)
       CFPropertyList (~> 2.2)
@@ -145,22 +147,27 @@ GEM
     nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
     rake (10.4.2)
-    rspec (3.2.0)
-      rspec-core (~> 3.2.0)
-      rspec-expectations (~> 3.2.0)
-      rspec-mocks (~> 3.2.0)
-    rspec-core (3.2.3)
-      rspec-support (~> 3.2.0)
-    rspec-expectations (3.2.1)
+    rspec (3.4.0)
+      rspec-core (~> 3.4.0)
+      rspec-expectations (~> 3.4.0)
+      rspec-mocks (~> 3.4.0)
+    rspec-core (3.4.4)
+      rspec-support (~> 3.4.0)
+    rspec-expectations (3.4.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.2.0)
-    rspec-mocks (3.2.1)
+      rspec-support (~> 3.4.0)
+    rspec-mocks (3.4.1)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.2.0)
-    rspec-support (3.2.2)
+      rspec-support (~> 3.4.0)
+    rspec-support (3.4.1)
     simple_gem (1.1.0)
       activesupport (>= 3.0)
       rake (>= 0.8.7)
+    simplecov (0.11.2)
+      docile (~> 1.1.0)
+      json (~> 1.8)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.0)
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
@@ -170,9 +177,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  rspec (~> 3.2)
+  byebug
+  rspec (~> 3.4)
   simple_gem
   simple_job!
+  simplecov
 
 BUNDLED WITH
-   1.11.2
+   1.12.5

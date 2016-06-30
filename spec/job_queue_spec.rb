@@ -1,9 +1,8 @@
-require 'spec_helper'
 require 'singleton'
 
 include SimpleJob
 
-describe JobQueue do
+RSpec.describe JobQueue do
 
   before(:each) do
     @array_queue_class = Class.new(JobQueue) do
@@ -41,12 +40,12 @@ describe JobQueue do
       def self.name; 'BareJob'; end
       include JobDefinition
     end
-    
+
     JobQueue.config :implementation => 'array'
   end
 
   subject { @array_queue_class }
-  
+
   let(:bare_job_class) { @bare_job_class }
 
   it 'should default to configured queue class' do

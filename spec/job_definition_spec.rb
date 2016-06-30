@@ -1,8 +1,6 @@
-require 'spec_helper'
-
 include SimpleJob
 
-describe JobDefinition do
+RSpec.describe JobDefinition do
 
   context 'a bare class including JobDefinition' do
 
