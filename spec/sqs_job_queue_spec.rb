@@ -1,16 +1,16 @@
 RSpec.describe SimpleJob::SQSJobQueue do
 
   before(:all) do
-    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'test'
+    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'tests'
     SimpleJob::JobQueue.config implementation: 'sqs'
   end
 
   before(:each) do
-    allow(AWS::SQS).to receive(:new) { sqs }
+    allow(AWS::SQS).to receive_messages(new: sqs)
     SimpleJob::JobDefinition.job_definitions.clear
   end
 
-  let(:sqs) { double('SQS', queues: sqs_queues) }
+  let(:sqs) { instance_double(AWS::SQS, queues: sqs_queues) }
   let(:sqs_queues) do
     Class.new do
       def initialize(sqs_queue_class)
