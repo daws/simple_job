@@ -1,16 +1,12 @@
-require 'json'
-require 'ostruct'
-
 RSpec.describe SimpleJob::SQSJobQueue do
 
   before(:all) do
-    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test'
+    SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'test'
     SimpleJob::JobQueue.config implementation: 'sqs'
   end
 
   before(:each) do
     allow(AWS::SQS).to receive(:new) { sqs }
-    allow(Fog::AWS::CloudWatch).to receive(:new) { nil }
     SimpleJob::JobDefinition.job_definitions.clear
   end
 
@@ -53,7 +49,7 @@ RSpec.describe SimpleJob::SQSJobQueue do
         attr_accessor :executions
         def name; 'FooSender'; end
       end
-      include JobDefinition
+      include SimpleJob::JobDefinition
       simple_job_attribute :target, :foo_content
       validates :target, presence: true
       def execute
