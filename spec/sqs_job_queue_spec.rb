@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+require 'json'
 require 'ostruct'
 
 describe SimpleJob::SQSJobQueue do
@@ -86,7 +87,7 @@ describe SimpleJob::SQSJobQueue do
   context 'high priority queue' do
 
     subject { high_priority_queue }
-    
+
     it { is_expected.to eq(SimpleJob::JobQueue['high-priority']) }
 
   end
@@ -111,11 +112,11 @@ describe SimpleJob::SQSJobQueue do
   end
 
   context 'message constructed by auto scaling' do
-    
+
     it_should_behave_like 'a standard message',
       {
         AutoScalingGroupName: 'stash_website_production_1',
-        NotificationMetadata: { type: 'foo_sender', version: '1' }.to_json
+        NotificationMetadata: JSON.dump(type: 'foo_sender', version: '1')
       }
 
   end
