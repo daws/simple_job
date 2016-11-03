@@ -1,3 +1,3 @@
 module SimpleJob
-  VERSION = '0.8.0'
+  VERSION = '0.13.0'
 end

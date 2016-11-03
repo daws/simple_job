@@ -1,5 +1,31 @@
 = Simple Job
 
+== Version 0.13.0
+* Remove fog dependency
+* Upgrade rspec framework
+
+== Version 0.12.1
+* Ignoring messages that don't look like valid job definitions
+
+== Version 0.12.0
+* Added accept_nested_definition option to SQSJobQueue
+* Updating specs and eliminating their dependency on AWS
+
+== Version 0.11.0
+* Using explicit aws-sdk-v1 to allow apps dependent on this library to use both v1 and v2 of aws sdk
+
+== Version 0.10.0
+* Added ability to pass through send_message options (such as delay_seconds) to SQS when enqueuing jobs
+
+== Version 0.9.1
+* Added clear! to TestJobQueue
+
+== Version 0.9.0
+* Added TestJobQueue implementation
+
+== Version 0.8.1
+* Loosened requirement on activemodel and activesupport
+
 == Version 0.8.0
 * Added :always_sleep option to sleep between message processing even when there are available messages
 

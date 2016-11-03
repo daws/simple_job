@@ -3,3 +3,7 @@ gems_dev/
 .rbx/
 .bundle
 *.swp
+log/*.log
+bundle/
+coverage/
+.byebug_history

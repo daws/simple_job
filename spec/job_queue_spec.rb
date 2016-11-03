@@ -1,9 +1,8 @@
-require 'spec_helper'
 require 'singleton'
 
 include SimpleJob
 
-describe JobQueue do
+RSpec.describe JobQueue do
 
   before(:each) do
     @array_queue_class = Class.new(JobQueue) do
@@ -41,30 +40,30 @@ describe JobQueue do
       def self.name; 'BareJob'; end
       include JobDefinition
     end
-    
+
     JobQueue.config :implementation => 'array'
   end
 
   subject { @array_queue_class }
-  
+
   let(:bare_job_class) { @bare_job_class }
 
   it 'should default to configured queue class' do
-    JobQueue.queue_class.should == subject
+    expect(JobQueue.queue_class).to eq(subject)
   end
 
   it 'should return queue using array operator' do
-    JobQueue['sometype'].should == subject.instance
+    expect(JobQueue['sometype']).to eq(subject.instance)
   end
 
   it 'should return default queue' do
-    JobQueue.default.should == subject.instance
+    expect(JobQueue.default).to eq(subject.instance)
   end
 
   it 'should enqueue a JSON message when job enqueue method is called' do
     job = bare_job_class.new
     expect { job.enqueue }.to change { subject.instance.queue.size }.from(0).to(1)
-    JSON.parse(subject.instance.queue[0]).should == { 'type' => 'bare_job', 'version' => '1', 'data' => {} }
+    expect(JSON.parse(subject.instance.queue[0])).to eq({ 'type' => 'bare_job', 'version' => '1', 'data' => {} })
   end
 
   it 'should retrieve all messages when polling' do
@@ -81,7 +80,7 @@ describe JobQueue do
     Kernel.sleep(0.1)
     polling_thread.kill
 
-    retrieved_messages.should == 20
+    expect(retrieved_messages).to eq(20)
   end
 
 end

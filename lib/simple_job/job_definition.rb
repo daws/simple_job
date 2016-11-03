@@ -104,10 +104,10 @@ module JobDefinition
     #end
   end
 
-  def enqueue(queue_type = nil)
+  def enqueue(queue_type = nil, options = {})
     if valid?
       queue = (queue_type && JobQueue[queue_type]) || self.class.job_queue || JobQueue.default
-      queue.enqueue(self.to_json)
+      queue.enqueue(self.to_json, options)
     else
       false
     end

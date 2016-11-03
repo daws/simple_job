@@ -1,7 +1,6 @@
 require 'socket'
 
-require 'aws-sdk'
-require 'fog'
+require 'aws-sdk-v1'
 
 module SimpleJob
 
@@ -42,21 +41,39 @@ class SQSJobQueue < JobQueue
   # then fork and execute the proper job in a separate process. This can be
   # used when you have long-running jobs that will exceed the visibility timeout,
   # and it is not critical that they be retried when they fail.
+  #
+  # You may pass an :accept_nested_definition option with a string value to allow this
+  # queue to accept messages where the body is nested within a hash entry. This
+  # facilitates easy processing of SNS and AutoScaling messages. For example, if you
+  # pass this option:
+  #
+  #   accept_nested_definition: 'NotificationMetadata'
+  #
+  # Then you can put a job body into the NotificationMetadata of an AutoScaling
+  # notification:
+  #
+  #   { "AutoScalingGroupName": "some_name", "Service": "AWS Auto Scaling" ...
+  #     "NotificationMetadata": "{\"type\":\"my_job\",\"version\":\"1\"}" }
+  #
+  # Then the queue will attempt to process incoming messages normally, but if it
+  # encounters a message missing a type and version, it will check the value
+  # passed into accept_nested_definition before failing.
   def self.define_queue(type, options = {})
     type = type.to_s
 
     options = {
-      :visibility_timeout => config[:default_visibility_timeout],
-      :asynchronous_execute => false,
-      :default => false,
+      visibility_timeout: config[:default_visibility_timeout],
+      asynchronous_execute: false,
+      default: false
     }.merge(options)
+    make_default = options.delete(:default)
 
-    queue = self.new(type, options[:visibility_timeout], options[:asynchronous_execute])
+    queue = self.new(type, options)
     self.queues ||= {}
     self.queues[type] = queue
 
-    @default_queue = queue if options[:default]
-    
+    @default_queue = queue if make_default
+
     queue
   end
 
@@ -67,7 +84,7 @@ class SQSJobQueue < JobQueue
 
   def enqueue(message, options = {})
     raise("enqueue expects a raw string") unless message.is_a?(String)
-    sqs_queue.send_message(message)
+    sqs_queue.send_message(message, options)
   end
 
   # Polls the queue, matching incoming messages with registered jobs, and
@@ -153,24 +170,30 @@ class SQSJobQueue < JobQueue
       current_job_type = 'unknown'
       begin
         sqs_queue.receive_messages(options) do |message|
-          last_message = message
-          last_message_at = Time.now
-          raw_message = JSON.parse(message.body)
-          current_job_type = raw_message['type']
-          definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
+          message_body = get_message_body(message)
+          raw_message = JSON.parse(message_body)
 
-          raise('no definition found') if !definition_class
+          if raw_message['type'] && raw_message['version']
+            last_message = message
+            last_message_at = Time.now
+            current_job_type = raw_message['type']
+            definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
 
-          if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
-            raise('max attempt count reached') 
+            raise('no definition found') if !definition_class
+
+            if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
+              raise('max attempt count reached')
+            end
+
+            definition = definition_class.new.from_json(message_body)
+            last_definition = definition
+
+            # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
+            # vis. timeout if this fails or runs too long)
+            message_handler.call(definition, message) unless asynchronous_execute
+          else
+            logger.info("ignoring invalid message: #{message_body}")
           end
-
-          definition = definition_class.new.from_json(message.body)
-          last_definition = definition
-
-          # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
-          # vis. timeout if this fails or runs too long)
-          message_handler.call(definition, message) unless asynchronous_execute
         end
 
         # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
@@ -230,18 +253,16 @@ class SQSJobQueue < JobQueue
     attr_accessor :queues
   end
 
-  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch
+  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch, :accept_nested_definition
 
-  def initialize(type, visibility_timeout, asynchronous_execute)
+  def initialize(type, visibility_timeout:, asynchronous_execute:, accept_nested_definition: nil)
     sqs = ::AWS::SQS.new
     self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
     self.sqs_queue = sqs.queues.create(queue_name)
     self.visibility_timeout = visibility_timeout
     self.asynchronous_execute = asynchronous_execute
-    self.cloud_watch = Fog::AWS::CloudWatch.new(
-      :aws_access_key_id => AWS.config.access_key_id,
-      :aws_secret_access_key => AWS.config.secret_access_key
-    )
+    self.cloud_watch = AWS::CloudWatch.new
+    self.accept_nested_definition = accept_nested_definition
   end
 
   def logger
@@ -259,7 +280,7 @@ class SQSJobQueue < JobQueue
       hostname = Socket.gethostbyname(Socket.gethostname).first
 
       message_dimensions = [
-        { 'Name' => 'Environment', 'Value' => environment }, 
+        { 'Name' => 'Environment', 'Value' => environment },
         { 'Name' => 'SQSQueueName', 'Value' => queue_name },
         { 'Name' => 'Host', 'Value' => hostname },
       ]
@@ -291,7 +312,7 @@ class SQSJobQueue < JobQueue
           'Dimensions' => message_dimensions
         }
       ]
-       
+
       if message
         now = get_milliseconds
 
@@ -346,8 +367,19 @@ class SQSJobQueue < JobQueue
         end
       end
 
-      cloud_watch.put_metric_data(self.class.config[:cloud_watch_namespace], metric_data)
+      cloud_watch.put_metric_data(namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data)
     end
+  end
+
+  def get_message_body(message)
+    result = message.body
+    message_hash = JSON.parse(result)
+
+    if (!message_hash.has_key?('type') || !message_hash.has_key?('version')) && accept_nested_definition
+      result = message_hash[accept_nested_definition]
+    end
+
+    result || '{}'
   end
 
 end

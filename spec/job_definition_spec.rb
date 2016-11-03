@@ -1,8 +1,6 @@
-require 'spec_helper'
-
 include SimpleJob
 
-describe JobDefinition do
+RSpec.describe JobDefinition do
 
   context 'a bare class including JobDefinition' do
 
@@ -16,73 +14,73 @@ describe JobDefinition do
 
     subject { @bare_job.new }
 
-    it { should be_valid }
+    it { is_expected.to be_valid }
 
     it 'should have an execute method' do
-      lambda { subject.execute }.should_not raise_error
+      expect { subject.execute }.not_to raise_error
     end
 
     it 'should default to a type of :bare_job' do
-      subject.type.should == :bare_job
+      expect(subject.type).to eq(:bare_job)
     end
 
     it 'should default to version "1"' do
-      subject.version.should == '1'
+      expect(subject.version).to eq('1')
     end
 
     it 'should default to single version "1"' do
-      subject.versions.should == [ '1' ]
+      expect(subject.versions).to eq([ '1' ])
     end
 
     it 'should allow type to be overridden' do
       subject.class.register_simple_job :type => :alternate_type
-      subject.type.should == :alternate_type
+      expect(subject.type).to eq(:alternate_type)
     end
 
     it 'should register its job definition' do
-      JobDefinition.job_definitions.should == [ subject.class.definition ]
+      expect(JobDefinition.job_definitions).to eq([ subject.class.definition ])
     end
 
     it 'should replace registered definition when calling register_simple_job' do
       subject.class.register_simple_job :type => :alternate, :versions => 3
-      JobDefinition.job_definitions.size.should == 1
-      JobDefinition.job_definitions.first[:type].should == :alternate
-      JobDefinition.job_definitions.first.should == subject.class.definition
+      expect(JobDefinition.job_definitions.size).to eq(1)
+      expect(JobDefinition.job_definitions.first[:type]).to eq(:alternate)
+      expect(JobDefinition.job_definitions.first).to eq(subject.class.definition)
     end
 
     it 'should allow versions to be overridden' do
       subject.class.register_simple_job :versions => [ '23' ]
-      subject.version.should == '23'
+      expect(subject.version).to eq('23')
     end
 
     it 'should allow multiple versions' do
       subject.class.register_simple_job :versions => [ '3', '2', '1' ]
-      subject.versions.should == [ '3', '2', '1' ]
-      subject.version.should == '3'
+      expect(subject.versions).to eq([ '3', '2', '1' ])
+      expect(subject.version).to eq('3')
     end
 
     it 'should allow version to be specified as a number' do
       subject.class.register_simple_job :versions => [ 3 ]
-      subject.version.should == '3'
+      expect(subject.version).to eq('3')
     end
 
     it 'should allow version to be specified without an array' do
       subject.class.register_simple_job :versions => 4
-      subject.version.should == '4'
-      subject.versions.should == [ '4' ]
+      expect(subject.version).to eq('4')
+      expect(subject.versions).to eq([ '4' ])
     end
 
     it 'should add getters and setters for data attributes' do
       subject.class.simple_job_attribute :foo, :bar
-      subject.should respond_to(:foo, :foo=, :bar, :bar=)
+      is_expected.to respond_to(:foo, :foo=, :bar, :bar=)
     end
 
     it 'should have a logger method on its class' do
-      subject.class.should respond_to(:logger)
+      expect(subject.class).to respond_to(:logger)
     end
 
     it 'should have a logger' do
-      subject.should respond_to(:logger)
+      is_expected.to respond_to(:logger)
     end
 
   end
@@ -99,16 +97,16 @@ describe JobDefinition do
       simple_job.new
     }
 
-    it { should_not be_valid }
+    it { is_expected.not_to be_valid }
 
     it "should be valid once setting attr" do
       subject.attr = "foo"
-      should be_valid
+      is_expected.to be_valid
     end
 
     it "should produce valid json" do
       subject.attr = "foo"
-      JSON.parse(subject.to_json).should == JSON.parse('{"data":{"attr":"foo"},"type":"simple_job","version":"1"}')
+      expect(JSON.parse(subject.to_json)).to eq(JSON.parse('{"data":{"attr":"foo"},"type":"simple_job","version":"1"}'))
     end
 
   end
@@ -144,15 +142,15 @@ describe JobDefinition do
     end
 
     it 'should have three registered job definitions' do
-      JobDefinition.job_definitions.size.should == 3
+      expect(JobDefinition.job_definitions.size).to eq(3)
     end
 
     it 'should return proper definition for each message' do
-      JobDefinition.job_definition_class_for('foo', '1').should == @foo
-      JobDefinition.job_definition_class_for('bar', '1').should == @legacy_bar
-      JobDefinition.job_definition_class_for('bar', '2').should == @legacy_bar
-      JobDefinition.job_definition_class_for('bar', '3').should == @bar
-      JobDefinition.job_definition_class_for('foo', '2').should == nil
+      expect(JobDefinition.job_definition_class_for('foo', '1')).to eq(@foo)
+      expect(JobDefinition.job_definition_class_for('bar', '1')).to eq(@legacy_bar)
+      expect(JobDefinition.job_definition_class_for('bar', '2')).to eq(@legacy_bar)
+      expect(JobDefinition.job_definition_class_for('bar', '3')).to eq(@bar)
+      expect(JobDefinition.job_definition_class_for('foo', '2')).to eq(nil)
     end
 
   end
@@ -174,15 +172,15 @@ describe JobDefinition do
     subject { @foo_sender_class }
 
     it 'should match default name' do
-      JobDefinition.job_definition_class_for('foo_sender', '1').should == subject
+      expect(JobDefinition.job_definition_class_for('foo_sender', '1')).to eq(subject)
     end
 
     it 'should match alternate name' do
-      JobDefinition.job_definition_class_for('alternate_foo_sender', '1').should == subject
+      expect(JobDefinition.job_definition_class_for('alternate_foo_sender', '1')).to eq(subject)
     end
 
     it 'should return default name for type' do
-      subject.definition[:type].should == :foo_sender
+      expect(subject.definition[:type]).to eq(:foo_sender)
     end
 
   end
@@ -204,7 +202,7 @@ describe JobDefinition do
     subject { @foo_sender_class.new }
 
     it 'should store the max attempt count' do
-      subject.class.max_attempt_count.should == 3
+      expect(subject.class.max_attempt_count).to eq(3)
     end
 
   end
