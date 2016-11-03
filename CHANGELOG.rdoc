@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.14.0
+* Add compound version dependency to limit activemodel and activesupport upper version to < 5
+
 == Version 0.13.0
 * Remove fog dependency
 * Upgrade rspec framework
