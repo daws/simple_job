@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple_job (0.13.0)
+    simple_job (0.14.0)
       activemodel (>= 3.0, < 5)
       activesupport (>= 3.0, < 5)
       aws-sdk-v1 (~> 1.2)
