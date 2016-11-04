@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    simple_job (0.13.0)
-      activemodel (>= 3.0)
-      activesupport (>= 3.0)
+    simple_job (0.14.0)
+      activemodel (>= 3.0, < 5)
+      activesupport (>= 3.0, < 5)
       aws-sdk-v1 (~> 1.2)
 
 GEM
@@ -27,10 +27,10 @@ GEM
     docile (1.1.5)
     i18n (0.7.0)
     json (1.8.2)
-    mini_portile2 (2.0.0)
+    mini_portile2 (2.1.0)
     minitest (5.6.1)
-    nokogiri (1.6.7.1)
-      mini_portile2 (~> 2.0.0.rc2)
+    nokogiri (1.6.8.1)
+      mini_portile2 (~> 2.1.0)
     rake (10.4.2)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
@@ -68,4 +68,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   1.12.5
+   1.13.6
