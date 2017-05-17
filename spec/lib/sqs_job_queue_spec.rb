@@ -1,5 +1,4 @@
 RSpec.describe SimpleJob::SQSJobQueue do
-
   before(:all) do
     SimpleJob::SQSJobQueue.config queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'tests'
     SimpleJob::JobQueue.config implementation: 'sqs'
@@ -52,11 +51,14 @@ RSpec.describe SimpleJob::SQSJobQueue do
       include SimpleJob::JobDefinition
       simple_job_attribute :target, :foo_content
       validates :target, presence: true
-      def execute
+      def execute(bar)
         self.class.executions << self
       end
       def ==(other)
         (target == other.target) && (foo_content == other.foo_content)
+      end
+      def name
+        self.class.name
       end
     end
   end
