@@ -207,4 +207,18 @@ RSpec.describe JobDefinition do
 
   end
 
+  context 'an invalid job definition' do
+    let(:invalid_job) do
+      Class.new do
+        def self.name; 'InvalidJob'; end
+        include JobDefinition
+        simple_job_attribute :data
+      end
+    end
+
+    it 'errors' do
+      expect { invalid_job.new }.to raise_error(RuntimeError, /attribute\: data/)
+    end
+  end
+
 end

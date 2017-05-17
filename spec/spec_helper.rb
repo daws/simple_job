@@ -1,8 +1,8 @@
-require 'logger'
 require 'simplecov_setup'
-require 'byebug'
 require 'simple_job'
+require 'byebug'
 
+require 'logger'
 logger = Logger.new('log/test.log')
 logger.level = Logger::DEBUG
 
@@ -19,6 +19,8 @@ RSpec.configure do |config|
     mocks.verify_doubled_constant_names = true
     mocks.verify_partial_doubles = true
   end
+
+  config.shared_context_metadata_behavior = :apply_to_host_groups
 
   config.filter_run :f
   config.run_all_when_everything_filtered = true
