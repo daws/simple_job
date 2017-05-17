@@ -209,7 +209,7 @@ module JobDefinition
     end
 
     def max_attempt_count(attempts = nil)
-      @max_attempt_count = attempts if attempts 
+      @max_attempt_count = attempts if attempts
       @max_attempt_count
     end
 

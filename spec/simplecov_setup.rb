@@ -5,6 +5,7 @@ SimpleCov.start do
 
   add_filter 'bundle/'
   add_filter 'spec/'
+  add_filter 'lib/simple_job/version'
 
-  minimum_coverage 77
+  minimum_coverage 82
 end
