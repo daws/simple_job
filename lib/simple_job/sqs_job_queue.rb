@@ -277,7 +277,13 @@ class SQSJobQueue < JobQueue
     if self.class.config[:cloud_watch_namespace]
       timestamp = DateTime.now.to_s
       environment = self.class.config[:environment]
-      hostname = Socket.gethostbyname(Socket.gethostname).first
+
+      # localhost throws an error when calling Socket.gethostbyname, so don't call it in dev & test
+      hostname = if %w(development test).include?(environment)
+        Socket.gethostname
+      else
+        Socket.gethostbyname(Socket.gethostname).first
+      end
 
       message_dimensions = [
         { 'Name' => 'Environment', 'Value' => environment },

@@ -1,4 +1,9 @@
 = Simple Job
+
+== Version 0.15.0
+* allow activemodel and activesupport version 5
+* fix super slow tests
+
 == Version 0.14.0
 * Add compound version dependency to limit activemodel and activesupport version to < 5
 
