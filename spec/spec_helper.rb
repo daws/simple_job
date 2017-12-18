@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simplecov_setup'
 require 'simple_job'
 require 'byebug'
@@ -7,7 +9,12 @@ logger = Logger.new('log/test.log')
 logger.level = Logger::DEBUG
 
 SimpleJob::JobQueue.config(logger: logger)
-AWS.config(logger: logger, log_level: :debug, access_key_id: 'access_key_id', secret_access_key: 'secret_access_key')
+AWS.config(
+  logger: logger,
+  log_level: :debug,
+  access_key_id: 'access_key_id',
+  secret_access_key: 'secret_access_key'
+)
 AWS.stub!
 
 RSpec.configure do |config|

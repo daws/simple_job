@@ -2,8 +2,6 @@ AllCops:
   TargetRubyVersion: 2.4
   Exclude:
     - 'bundle/**/*'
-    # - 'bin/*'
-    # - 'db/schema.rb'
     - 'vendor/bundle/**/*'
   DisplayCopNames: true
   DisplayStyleGuide: true
@@ -47,29 +45,6 @@ Style/StringMethods:
   Enabled: true
 
 # # Changing the default config
-# Metrics/BlockLength:
-#   Exclude:
-#     - 'benchmarks/amenities.rb'
-#     - 'config/environments/production.rb'
-#     - 'config/environments/qa.rb'
-#     - 'db/migrate/20160713201011_create_bdc_all.rb'
-#     - 'Rakefile'
-#     - 'lib/tasks/*.rake'
-#     - 'spec/**/*.rb'
-# Naming/VariableNumber:
-#   EnforcedStyle: snake_case
-# Rails/UnknownEnv:
-#   Environments:
-#     - qa
-#     - development
-#     - test
-#     - production
-
-
-# # Want to enable, need to investigate the impacts
-# Rails/SkipsModelValidations:
-#   Enabled: false
-# Rails/HasManyOrHasOneDependent:
-#   Enabled: false
-# Rails/InverseOf:
-#   Enabled: false
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*.rb'

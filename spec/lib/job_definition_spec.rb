@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 include SimpleJob
 
 RSpec.describe JobDefinition do
-
   context 'a bare class including JobDefinition' do
-
-    before(:each) do
+    before do
       JobDefinition.job_definitions.clear
       @bare_job = Class.new do
-        def self.name; 'BareJob'; end
+        def self.name
+          'BareJob'
+        end
         include JobDefinition
       end
     end
@@ -29,45 +31,45 @@ RSpec.describe JobDefinition do
     end
 
     it 'should default to single version "1"' do
-      expect(subject.versions).to eq([ '1' ])
+      expect(subject.versions).to eq(['1'])
     end
 
     it 'should allow type to be overridden' do
-      subject.class.register_simple_job :type => :alternate_type
+      subject.class.register_simple_job type: :alternate_type
       expect(subject.type).to eq(:alternate_type)
     end
 
     it 'should register its job definition' do
-      expect(JobDefinition.job_definitions).to eq([ subject.class.definition ])
+      expect(JobDefinition.job_definitions).to eq([subject.class.definition])
     end
 
     it 'should replace registered definition when calling register_simple_job' do
-      subject.class.register_simple_job :type => :alternate, :versions => 3
+      subject.class.register_simple_job type: :alternate, versions: 3
       expect(JobDefinition.job_definitions.size).to eq(1)
       expect(JobDefinition.job_definitions.first[:type]).to eq(:alternate)
       expect(JobDefinition.job_definitions.first).to eq(subject.class.definition)
     end
 
     it 'should allow versions to be overridden' do
-      subject.class.register_simple_job :versions => [ '23' ]
+      subject.class.register_simple_job versions: ['23']
       expect(subject.version).to eq('23')
     end
 
     it 'should allow multiple versions' do
-      subject.class.register_simple_job :versions => [ '3', '2', '1' ]
-      expect(subject.versions).to eq([ '3', '2', '1' ])
+      subject.class.register_simple_job versions: %w[3 2 1]
+      expect(subject.versions).to eq(%w[3 2 1])
       expect(subject.version).to eq('3')
     end
 
     it 'should allow version to be specified as a number' do
-      subject.class.register_simple_job :versions => [ 3 ]
+      subject.class.register_simple_job versions: [3]
       expect(subject.version).to eq('3')
     end
 
     it 'should allow version to be specified without an array' do
-      subject.class.register_simple_job :versions => 4
+      subject.class.register_simple_job versions: 4
       expect(subject.version).to eq('4')
-      expect(subject.versions).to eq([ '4' ])
+      expect(subject.versions).to eq(['4'])
     end
 
     it 'should add getters and setters for data attributes' do
@@ -82,38 +84,37 @@ RSpec.describe JobDefinition do
     it 'should have a logger' do
       is_expected.to respond_to(:logger)
     end
-
   end
 
   context 'a simple class including JobDefinition' do
-
-    subject {
+    subject do
       simple_job = Class.new do
-        def self.name; 'SimpleJob'; end
+        def self.name
+          'SimpleJob'
+        end
         include JobDefinition
         simple_job_attribute :attr
-        validates :attr, :presence => true
+        validates :attr, presence: true
       end
       simple_job.new
-    }
+    end
 
     it { is_expected.not_to be_valid }
 
-    it "should be valid once setting attr" do
-      subject.attr = "foo"
+    it 'should be valid once setting attr' do
+      subject.attr = 'foo'
       is_expected.to be_valid
     end
 
-    it "should produce valid json" do
-      subject.attr = "foo"
-      expect(JSON.parse(subject.to_json)).to eq(JSON.parse('{"data":{"attr":"foo"},"type":"simple_job","version":"1"}'))
+    it 'should produce valid json' do
+      subject.attr = 'foo'
+      expect(JSON.parse(subject.to_json))
+        .to eq(JSON.parse('{"data":{"attr":"foo"},"type":"simple_job","version":"1"}'))
     end
-
   end
 
   context 'an environment with three JobDefinition classes' do
-
-    before(:each) do
+    before do
       job_tracker = Class.new do
         class << self; attr_accessor :executions; end
         def execute
@@ -124,20 +125,26 @@ RSpec.describe JobDefinition do
       JobDefinition.job_definitions.clear
 
       @foo = Class.new(job_tracker) do
-        def self.name; 'Foo'; end
+        def self.name
+          'Foo'
+        end
         include JobDefinition
       end
 
       @bar = Class.new(job_tracker) do
-        def self.name; 'Bar'; end
+        def self.name
+          'Bar'
+        end
         include JobDefinition
-        register_simple_job :versions => 3
+        register_simple_job versions: 3
       end
 
       @legacy_bar = Class.new(job_tracker) do
-        def self.name; 'LegacyBar'; end
+        def self.name
+          'LegacyBar'
+        end
         include JobDefinition
-        register_simple_job :type => 'bar', :versions => [ 2, 1 ]
+        register_simple_job type: 'bar', versions: [2, 1]
       end
     end
 
@@ -152,20 +159,20 @@ RSpec.describe JobDefinition do
       expect(JobDefinition.job_definition_class_for('bar', '3')).to eq(@bar)
       expect(JobDefinition.job_definition_class_for('foo', '2')).to eq(nil)
     end
-
   end
 
   context 'a job definition that registers an alternate type name' do
-
-    before(:each) do
+    before do
       JobDefinition.job_definitions.clear
 
       @foo_sender_class = Class.new do
         class << self
-          def name; 'FooSender'; end
+          def name
+            'FooSender'
+          end
         end
         include JobDefinition
-        register_simple_job :type => 'alternate_foo_sender', :replace_existing => false
+        register_simple_job type: 'alternate_foo_sender', replace_existing: false
       end
     end
 
@@ -182,17 +189,17 @@ RSpec.describe JobDefinition do
     it 'should return default name for type' do
       expect(subject.definition[:type]).to eq(:foo_sender)
     end
-
   end
 
   context 'a job definition instance that declares a max attempt count' do
-
-    before(:each) do
+    before do
       JobDefinition.job_definitions.clear
 
       @foo_sender_class = Class.new do
         class << self
-          def name; 'FooSender'; end
+          def name
+            'FooSender'
+          end
         end
         include JobDefinition
         max_attempt_count 3
@@ -204,13 +211,14 @@ RSpec.describe JobDefinition do
     it 'should store the max attempt count' do
       expect(subject.class.max_attempt_count).to eq(3)
     end
-
   end
 
   context 'an invalid job definition' do
     let(:invalid_job) do
       Class.new do
-        def self.name; 'InvalidJob'; end
+        def self.name
+          'InvalidJob'
+        end
         include JobDefinition
         simple_job_attribute :data
       end
@@ -220,5 +228,4 @@ RSpec.describe JobDefinition do
       expect { invalid_job.new }.to raise_error(RuntimeError, /attribute\: data/)
     end
   end
-
 end
