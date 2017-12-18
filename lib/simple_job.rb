@@ -1,8 +1,6 @@
 module SimpleJob
-
   autoload :JobDefinition, 'simple_job/job_definition'
   autoload :JobQueue, 'simple_job/job_queue'
-
 end
 
 require 'simple_job/test_job_queue'

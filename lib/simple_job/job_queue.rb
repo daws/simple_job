@@ -20,13 +20,13 @@ require 'aws-sdk-v1'
 # to set a default queue.
 #
 # Example:
-# 
+#
 #  class ArrayQueue < SimpleJob::JobQueue
 #    register_job_queue 'array', self
 #
 #    include Singleton
 #    default self.instance
-#  
+#
 #    def self.get_queue(type, options = {})
 #      instance
 #    end
@@ -54,58 +54,55 @@ require 'aws-sdk-v1'
 #
 #  SimpleJob::JobQueue.config :implementation => 'array'
 module SimpleJob
-class JobQueue
+  class JobQueue
+    def self.register_job_queue(identifier, klass)
+      @@registered_job_queues ||= {}
+      @@registered_job_queues[identifier.to_s] = klass
+    end
 
-  def self.register_job_queue(identifier, klass)
-    @@registered_job_queues ||= {}
-    @@registered_job_queues[identifier.to_s] = klass
+    def self.config(options = {})
+      @config ||= {
+        :implementation => 'sqs',
+        :logger => default_logger,
+      }
+      @config.merge!(options) if options
+      @config
+    end
+
+    def self.[](type, options = {})
+      queue_class.get_queue(type, options)
+    end
+
+    def self.default_queue
+      raise "default queue not defined"
+    end
+
+    def self.default
+      queue_class.default_queue
+    end
+
+    def self.get_queue(type, _options = {})
+      raise "queue with type #{type} not defined"
+    end
+
+    def self.queue_class
+      @@registered_job_queues[config[:implementation].to_s]
+    end
+
+    def enqueue(_message, _options = {})
+      raise NotImplementedError
+    end
+
+    def poll(_options = {})
+      raise NotImplementedError
+    end
+
+    def self.default_logger
+      return Rails.logger if defined?(Rails)
+      logger = Logger.new(STDERR)
+      logger.level = Logger::INFO
+      logger
+    end
+    private_class_method :default_logger
   end
-
-  def self.config(options = {})
-    @config ||= {
-      :implementation => 'sqs',
-      :logger => default_logger,
-    }
-    @config.merge!(options) if options
-    @config
-  end
-
-  def self.[](type, options = {})
-    queue_class.get_queue(type, options)
-  end
-
-  def self.default_queue
-    raise "default queue not defined"
-  end
-
-  def self.default
-    queue_class.default_queue
-  end
-
-  def self.get_queue(type, options = {})
-    raise "queue with type #{type} not defined"
-  end
-
-  def self.queue_class
-    @@registered_job_queues[config[:implementation].to_s]
-  end
-
-  def enqueue(message, options = {})
-    raise NotImplementedError
-  end
-
-  def poll(options = {}, &block)
-    raise NotImplementedError
-  end
-
-  private
-
-  def self.default_logger
-    return Rails.logger if defined?(Rails)
-    logger = Logger.new(STDERR)
-    logger.level = Logger::INFO
-    logger
-  end
-
-end
 end
