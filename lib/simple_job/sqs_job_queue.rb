@@ -1,393 +1,402 @@
+# frozen_string_literal: true
+
 require 'socket'
 
 require 'aws-sdk-v1'
 
 module SimpleJob
+  # A SimpleJob::JobQueue implementation that uses AWS SQS
+  class SQSJobQueue < JobQueue
+    DEFAULT_POLL_INTERVAL = 1
 
-# A SimpleJob::JobQueue implementation that uses AWS SQS
-class SQSJobQueue < JobQueue
+    # Registers this queue implementation with SimpleJob::JobQueue with identifier "sqs".
+    register_job_queue 'sqs', self
 
-  DEFAULT_POLL_INTERVAL = 1
+    def self.config(options = {})
+      @config ||= {
+        queue_prefix: ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX'],
+        default_visibility_timeout: 60,
+        environment: (defined?(Rails) && Rails.env) || 'development',
+        cloud_watch_namespace: nil
+      }
 
-  # Registers this queue implementation with SimpleJob::JobQueue with identifier "sqs".
-  register_job_queue 'sqs', self
+      @config.merge!(options) if options
 
-  def self.config(options = {})
-    @config ||= {
-      :queue_prefix => ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX'],
-      :default_visibility_timeout => 60,
-      :environment => (defined?(Rails) && Rails.env) || 'development',
-      :cloud_watch_namespace => nil,
-    }
+      raise 'must configure :queue_prefix using SQSJobQueue.config' unless @config[:queue_prefix]
 
-    @config.merge!(options) if options
+      @config
+    end
 
-    raise 'must configure :queue_prefix using SQSJobQueue.config' if !@config[:queue_prefix]
+    def self.default_queue
+      @default_queue || super
+    end
 
-    @config
-  end
+    # Sets up an SQS queue, using the given type as a unique identifier for the name.
+    #
+    # A :visibility_timeout option may be passed to override the visibility timeout
+    # that is used when polling the queue.
+    #
+    # The :asynchronous_execute option, if set to true, will cause the poll method to
+    # parse and immediately accept each message (if it's validly formatted). It will
+    # then fork and execute the proper job in a separate process. This can be
+    # used when you have long-running jobs that will exceed the visibility timeout,
+    # and it is not critical that they be retried when they fail.
+    #
+    # You may pass an :accept_nested_definition option with a string value to allow this
+    # queue to accept messages where the body is nested within a hash entry. This
+    # facilitates easy processing of SNS and AutoScaling messages. For example, if you
+    # pass this option:
+    #
+    #   accept_nested_definition: 'NotificationMetadata'
+    #
+    # Then you can put a job body into the NotificationMetadata of an AutoScaling
+    # notification:
+    #
+    #   { "AutoScalingGroupName": "some_name", "Service": "AWS Auto Scaling" ...
+    #     "NotificationMetadata": "{\"type\":\"my_job\",\"version\":\"1\"}" }
+    #
+    # Then the queue will attempt to process incoming messages normally, but if it
+    # encounters a message missing a type and version, it will check the value
+    # passed into accept_nested_definition before failing.
+    def self.define_queue(type, options = {})
+      type = type.to_s
 
-  def self.default_queue
-    @default_queue || super
-  end
+      options = {
+        visibility_timeout: config[:default_visibility_timeout],
+        asynchronous_execute: false,
+        default: false
+      }.merge(options)
+      make_default = options.delete(:default)
 
-  # Sets up an SQS queue, using the given type as a unique identifier for the name.
-  #
-  # A :visibility_timeout option may be passed to override the visibility timeout
-  # that is used when polling the queue.
-  #
-  # The :asynchronous_execute option, if set to true, will cause the poll method to
-  # parse and immediately accept each message (if it's validly formatted). It will
-  # then fork and execute the proper job in a separate process. This can be
-  # used when you have long-running jobs that will exceed the visibility timeout,
-  # and it is not critical that they be retried when they fail.
-  #
-  # You may pass an :accept_nested_definition option with a string value to allow this
-  # queue to accept messages where the body is nested within a hash entry. This
-  # facilitates easy processing of SNS and AutoScaling messages. For example, if you
-  # pass this option:
-  #
-  #   accept_nested_definition: 'NotificationMetadata'
-  #
-  # Then you can put a job body into the NotificationMetadata of an AutoScaling
-  # notification:
-  #
-  #   { "AutoScalingGroupName": "some_name", "Service": "AWS Auto Scaling" ...
-  #     "NotificationMetadata": "{\"type\":\"my_job\",\"version\":\"1\"}" }
-  #
-  # Then the queue will attempt to process incoming messages normally, but if it
-  # encounters a message missing a type and version, it will check the value
-  # passed into accept_nested_definition before failing.
-  def self.define_queue(type, options = {})
-    type = type.to_s
+      queue = new(type, options)
+      self.queues ||= {}
+      self.queues[type] = queue
 
-    options = {
-      visibility_timeout: config[:default_visibility_timeout],
-      asynchronous_execute: false,
-      default: false
-    }.merge(options)
-    make_default = options.delete(:default)
+      @default_queue = queue if make_default
 
-    queue = self.new(type, options)
-    self.queues ||= {}
-    self.queues[type] = queue
+      queue
+    end
 
-    @default_queue = queue if make_default
+    def self.get_queue(type, options = {})
+      type = type.to_s
+      (self.queues || {})[type] || super
+    end
 
-    queue
-  end
+    def enqueue(message, options = {})
+      raise('enqueue expects a raw string') unless message.is_a?(String)
+      sqs_queue.send_message(message, options)
+    end
 
-  def self.get_queue(type, options = {})
-    type = type.to_s
-    (self.queues || {})[type] || super
-  end
+    # Polls the queue, matching incoming messages with registered jobs, and
+    # executing the proper job/version.
+    #
+    # If called without a block, it will simply call the #execute method of the
+    # matched job. A block may be passed to add custom logic, but in this case
+    # the caller is responsible for calling #execute. The block will be passed
+    # two arguments, the matching job definition (already populated with the
+    # contents of the message) and the raw AWS message.
+    #
+    # The #execute method MAY have a parameter, which will be populated with
+    # the raw AWS::SQS::ReceivedMessage object if it exists.
+    #
+    # The queue's configured visibility timeout will be used unless the
+    # :visibility_timeout option is passed (as a number of seconds).
+    #
+    # By default, the message's 'sent_at', 'receive_count', and
+    # 'first_received_at' attributes will be populated in the AWS message, but
+    # this may be overridden by passing an array of symbols to the :attributes
+    # option.
+    #
+    # By default, errors during job execution or message polling will be logged
+    # and the polling will continue, but that behavior may be changed by setting
+    # the :raise_exceptions option to true.
+    #
+    # By defult, this method will poll indefinitely. If you pass an :idle_timeout
+    # option, the polling will stop and this method will return if that number
+    # of seconds passes without receiving a message. In both cases, the method
+    # will safely complete processing the current message and return if a HUP,
+    # INT, or TERM signal is sent to the process.
+    #
+    # You may also pass a :max_executions option (as an integer), in which case
+    # the poll method will poll that many times and then exit.
+    #
+    # If poll_interval is set, polling will pause for poll_interval seconds when there are no
+    # available messages.  If always_sleep is set to true, then polling will pause
+    # after every message is received, even if there are more available messages.
+    #
+    # Note that this method will override any signal handlers for the HUP, INT,
+    # or TERM signals during its execution, but the previous handlers will be
+    # restored once the method returns.
+    def poll(options = {}, &block)
+      options = {
+        visibility_timeout: visibility_timeout,
+        attributes: %i[sent_at receive_count first_received_at],
+        raise_exceptions: false,
+        idle_timeout: nil,
+        poll_interval: DEFAULT_POLL_INTERVAL,
+        max_executions: nil,
+        always_sleep: false
+      }.merge(options)
 
-  def enqueue(message, options = {})
-    raise("enqueue expects a raw string") unless message.is_a?(String)
-    sqs_queue.send_message(message, options)
-  end
-
-  # Polls the queue, matching incoming messages with registered jobs, and
-  # executing the proper job/version.
-  #
-  # If called without a block, it will simply call the #execute method of the
-  # matched job. A block may be passed to add custom logic, but in this case
-  # the caller is responsible for calling #execute. The block will be passed
-  # two arguments, the matching job definition (already populated with the
-  # contents of the message) and the raw AWS message.
-  #
-  # The #execute method MAY have a parameter, which will be populated with
-  # the raw AWS::SQS::ReceivedMessage object if it exists.
-  #
-  # The queue's configured visibility timeout will be used unless the
-  # :visibility_timeout option is passed (as a number of seconds).
-  #
-  # By default, the message's 'sent_at', 'receive_count', and
-  # 'first_received_at' attributes will be populated in the AWS message, but
-  # this may be overridden by passing an array of symbols to the :attributes
-  # option.
-  #
-  # By default, errors during job execution or message polling will be logged
-  # and the polling will continue, but that behavior may be changed by setting
-  # the :raise_exceptions option to true.
-  #
-  # By defult, this method will poll indefinitely. If you pass an :idle_timeout
-  # option, the polling will stop and this method will return if that number
-  # of seconds passes without receiving a message. In both cases, the method
-  # will safely complete processing the current message and return if a HUP,
-  # INT, or TERM signal is sent to the process.
-  #
-  # You may also pass a :max_executions option (as an integer), in which case
-  # the poll method will poll that many times and then exit.
-  #
-  # If poll_interval is set, polling will pause for poll_interval seconds when there are no
-  # available messages.  If always_sleep is set to true, then polling will pause
-  # after every message is received, even if there are more available messages.
-  #
-  # Note that this method will override any signal handlers for the HUP, INT,
-  # or TERM signals during its execution, but the previous handlers will be
-  # restored once the method returns.
-  def poll(options = {}, &block)
-    options = {
-      :visibility_timeout => visibility_timeout,
-      :attributes => [ :sent_at, :receive_count, :first_received_at ],
-      :raise_exceptions => false,
-      :idle_timeout => nil,
-      :poll_interval => DEFAULT_POLL_INTERVAL,
-      :max_executions => nil,
-      :always_sleep => false
-    }.merge(options)
-
-    message_handler = block || lambda do |definition, message|
-      execute_method = definition.method(:execute)
-      arguments = []
-      if execute_method.arity >= 1
-        arguments << message
+      message_handler = block || lambda do |definition, message|
+        execute_method = definition.method(:execute)
+        arguments = []
+        arguments << message if execute_method.arity >= 1
+        execute_method.call(*arguments)
       end
-      execute_method.call(*arguments)
-    end
 
-    exit_next = false
+      exit_next = false
 
-    logger.debug 'trapping terminate signals with function to exit loop'
-    signal_exit = lambda do |*args|
-      logger.info "caught signal to shutdown; finishing current message and quitting..."
-      exit_next = true
-    end
-    previous_traps = {}
-    ['HUP', 'INT', 'TERM'].each do |signal|
-      previous_traps[signal] = Signal.trap(signal, signal_exit)
-    end
+      logger.debug 'trapping terminate signals with function to exit loop'
+      signal_exit = lambda do |*_args|
+        logger.info 'caught signal to shutdown; finishing current message and quitting...'
+        exit_next = true
+      end
+      previous_traps = {}
+      %w[HUP INT TERM].each do |signal|
+        previous_traps[signal] = Signal.trap(signal, signal_exit)
+      end
 
-    last_message_at = Time.now
+      last_message_at = Time.now.utc
 
-    max_executions = options[:max_executions]
-    loop do
-      break if max_executions && (max_executions <= 0)
-      last_message = nil
-      last_definition = nil
-      current_start_milliseconds = get_milliseconds
-      current_job_type = 'unknown'
-      begin
-        sqs_queue.receive_messages(options) do |message|
-          message_body = get_message_body(message)
-          raw_message = JSON.parse(message_body)
+      max_executions = options[:max_executions]
+      loop do
+        break if max_executions && (max_executions <= 0)
+        last_message = nil
+        last_definition = nil
+        current_start_milliseconds = get_milliseconds
+        current_job_type = 'unknown'
+        begin
+          sqs_queue.receive_messages(options) do |message|
+            message_body = get_message_body(message)
+            raw_message = JSON.parse(message_body)
 
-          if raw_message['type'] && raw_message['version']
-            last_message = message
-            last_message_at = Time.now
-            current_job_type = raw_message['type']
-            definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
+            if raw_message['type'] && raw_message['version']
+              last_message = message
+              last_message_at = Time.now.utc
+              current_job_type = raw_message['type']
+              definition_class = JobDefinition.job_definition_class_for(
+                raw_message['type'], raw_message['version']
+              )
 
-            raise('no definition found') if !definition_class
+              raise('no definition found') unless definition_class
 
-            if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
-              raise('max attempt count reached')
+              if definition_class.max_attempt_count &&
+                 (message.receive_count > definition_class.max_attempt_count)
+                raise('max attempt count reached')
+              end
+
+              definition = definition_class.new.from_json(message_body)
+              last_definition = definition
+
+              # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued
+              # after vis. timeout if this fails or runs too long)
+              message_handler.call(definition, message) unless asynchronous_execute
+            else
+              logger.info("ignoring invalid message: #{message_body}")
             end
-
-            definition = definition_class.new.from_json(message_body)
-            last_definition = definition
-
-            # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
-            # vis. timeout if this fails or runs too long)
-            message_handler.call(definition, message) unless asynchronous_execute
-          else
-            logger.info("ignoring invalid message: #{message_body}")
           end
-        end
 
-        # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
-        if asynchronous_execute && last_message
-          pid = fork
-          if pid
-            # in parent
-            Process.detach pid
-          else
-            # in child
-            begin
-              message_handler.call(last_definition, last_message)
-              log_execution(true, last_message, current_job_type, current_start_milliseconds)
-            rescue Exception => e
-              logger.error("error executing asynchronous job: #{e.message}")
-              logger.error e.backtrace.join("\n  ")
+          # NOTE: only executes if asynchronous_execute is set (after message has been confirmed)
+          if asynchronous_execute && last_message
+            pid = fork
+            if pid
+              # in parent
+              Process.detach pid
+            else
+              # in child
+              begin
+                message_handler.call(last_definition, last_message)
+                log_execution(true, last_message, current_job_type, current_start_milliseconds)
+              rescue StandardError => e
+                logger.error("error executing asynchronous job: #{e.message}")
+                logger.error e.backtrace.join("\n  ")
+              end
+              exit # rubocop:disable Rails/Exit
             end
-            exit
+          else
+            log_execution(true, last_message, current_job_type, current_start_milliseconds)
           end
-        else
-          log_execution(true, last_message, current_job_type, current_start_milliseconds)
-        end
 
-        break if options[:idle_timeout] && ((Time.now - last_message_at) > options[:idle_timeout])
+          if options[:idle_timeout] && ((Time.now.utc - last_message_at) > options[:idle_timeout])
+            break
+          end
 
-        if options[:always_sleep] || !last_message
-          Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
-        end
-      rescue SystemExit => e
-        raise e
-      rescue Exception => e
-        log_execution(false, last_message, current_job_type, current_start_milliseconds) rescue nil
-
-        if options[:raise_exceptions]
+          if options[:always_sleep] || !last_message
+            Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
+          end
+        rescue SystemExit => e
           raise e
-        else
-          logger.error("unable to process message: #{e.message}")
-          logger.error("message body: #{last_message && last_message.body}")
-          logger.error(e.backtrace.join("\n  "))
+        rescue StandardError => e
+          begin
+            log_execution(false, last_message, current_job_type, current_start_milliseconds)
+          rescue StandardError
+            nil
+          end
+
+          if options[:raise_exceptions]
+            raise e
+          else
+            logger.error("unable to process message: #{e.message}")
+            logger.error("message body: #{last_message&.body}")
+            logger.error(e.backtrace.join("\n  "))
+          end
         end
-      end
-      max_executions -= 1 if max_executions
-      break if exit_next
-    end
-
-    logger.debug 'restoring previous signal traps'
-    previous_traps.each do |signal, command|
-      Signal.trap(signal, command)
-    end
-
-    logger.info "shutdown successful"
-  end
-
-  private
-
-  class << self
-    attr_accessor :queues
-  end
-
-  attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch, :accept_nested_definition
-
-  def initialize(type, visibility_timeout:, asynchronous_execute:, accept_nested_definition: nil)
-    sqs = ::AWS::SQS.new
-    self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
-    self.sqs_queue = sqs.queues.create(queue_name)
-    self.visibility_timeout = visibility_timeout
-    self.asynchronous_execute = asynchronous_execute
-    self.cloud_watch = AWS::CloudWatch.new
-    self.accept_nested_definition = accept_nested_definition
-  end
-
-  def logger
-    JobQueue.config[:logger]
-  end
-
-  def get_milliseconds(time = Time.now)
-    (time.to_f * 1000).round
-  end
-
-  def log_execution(successful, message, job_type, start_milliseconds)
-    if self.class.config[:cloud_watch_namespace]
-      timestamp = DateTime.now.to_s
-      environment = self.class.config[:environment]
-
-      # localhost throws an error when calling Socket.gethostbyname, so don't call it in dev & test
-      hostname = if %w(development test).include?(environment)
-        Socket.gethostname
-      else
-        Socket.gethostbyname(Socket.gethostname).first
+        max_executions -= 1 if max_executions
+        break if exit_next
       end
 
-      message_dimensions = [
-        { 'Name' => 'Environment', 'Value' => environment },
-        { 'Name' => 'SQSQueueName', 'Value' => queue_name },
-        { 'Name' => 'Host', 'Value' => hostname },
-      ]
+      logger.debug 'restoring previous signal traps'
+      previous_traps.each do |signal, command|
+        Signal.trap(signal, command)
+      end
 
-      job_dimensions = message_dimensions + [
-        { 'Name' => 'JobType', 'Value' => job_type },
-      ]
+      logger.info 'shutdown successful'
+    end
 
-      metric_data = [
-        {
-          'MetricName' => 'MessageCheckCount',
-          'Timestamp' => timestamp,
-          'Unit' => 'Count',
-          'Value' => 1,
-          'Dimensions' => message_dimensions
-        },
-        {
-          'MetricName' => 'MessageReceivedCount',
-          'Timestamp' => timestamp,
-          'Unit' => 'Count',
-          'Value' => message ? 1 : 0,
-          'Dimensions' => message_dimensions
-        },
-        {
-          'MetricName' => 'MessageMissCount',
-          'Timestamp' => timestamp,
-          'Unit' => 'Count',
-          'Value' => message ? 0 : 1,
-          'Dimensions' => message_dimensions
-        }
-      ]
+    private
 
-      if message
-        now = get_milliseconds
+    class << self
+      attr_accessor :queues
+    end
 
-        metric_data.concat([
+    attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch,
+                  :accept_nested_definition
+
+    def initialize(type, visibility_timeout:, asynchronous_execute:, accept_nested_definition: nil)
+      sqs = ::AWS::SQS.new
+      self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-" \
+        "#{self.class.config[:environment]}"
+      self.sqs_queue = sqs.queues.create(queue_name)
+      self.visibility_timeout = visibility_timeout
+      self.asynchronous_execute = asynchronous_execute
+      self.cloud_watch = AWS::CloudWatch.new
+      self.accept_nested_definition = accept_nested_definition
+    end
+
+    def logger
+      JobQueue.config[:logger]
+    end
+
+    def get_milliseconds(time = Time.now.utc)
+      (time.to_f * 1000).round
+    end
+
+    def log_execution(successful, message, job_type, start_milliseconds)
+      if self.class.config[:cloud_watch_namespace]
+        timestamp = Time.now.utc.to_s
+        environment = self.class.config[:environment]
+
+        # localhost throws an error when calling Socket.gethostbyname, don't call it in dev & test
+        hostname = if %w[development test].include?(environment)
+                     Socket.gethostname
+                   else
+                     Socket.gethostbyname(Socket.gethostname).first
+                   end
+
+        message_dimensions = [
+          { 'Name' => 'Environment', 'Value' => environment },
+          { 'Name' => 'SQSQueueName', 'Value' => queue_name },
+          { 'Name' => 'Host', 'Value' => hostname }
+        ]
+
+        job_dimensions = message_dimensions + [
+          { 'Name' => 'JobType', 'Value' => job_type }
+        ]
+
+        metric_data = [
           {
-            'MetricName' => 'ExecutionCount',
+            'MetricName' => 'MessageCheckCount',
             'Timestamp' => timestamp,
             'Unit' => 'Count',
             'Value' => 1,
-            'Dimensions' => job_dimensions
+            'Dimensions' => message_dimensions
           },
           {
-            'MetricName' => 'SuccessCount',
+            'MetricName' => 'MessageReceivedCount',
             'Timestamp' => timestamp,
             'Unit' => 'Count',
-            'Value' => successful ? 1 : 0,
-            'Dimensions' => job_dimensions
+            'Value' => message ? 1 : 0,
+            'Dimensions' => message_dimensions
           },
           {
-            'MetricName' => 'ErrorCount',
+            'MetricName' => 'MessageMissCount',
             'Timestamp' => timestamp,
             'Unit' => 'Count',
-            'Value' => successful ? 0 : 1,
-            'Dimensions' => job_dimensions
-          },
-          {
-            'MetricName' => 'ExecutionTime',
-            'Timestamp' => timestamp,
-            'Unit' => 'Milliseconds',
-            'Value' => now - start_milliseconds,
-            'Dimensions' => job_dimensions
+            'Value' => message ? 0 : 1,
+            'Dimensions' => message_dimensions
           }
-        ])
+        ]
 
-        if successful
+        if message
+          now = get_milliseconds
+
           metric_data.concat([
-            {
-              'MetricName' => 'TimeToCompletion',
-              'Timestamp' => timestamp,
-              'Unit' => 'Milliseconds',
-              'Value' => now - get_milliseconds(message.sent_at),
-              'Dimensions' => job_dimensions
-            },
-            {
-              'MetricName' => 'ExecutionAttempts',
-              'Timestamp' => timestamp,
-              'Unit' => 'Count',
-              'Value' => message.receive_count,
-              'Dimensions' => job_dimensions
-            }
-          ])
+                               {
+                                 'MetricName' => 'ExecutionCount',
+                                 'Timestamp' => timestamp,
+                                 'Unit' => 'Count',
+                                 'Value' => 1,
+                                 'Dimensions' => job_dimensions
+                               },
+                               {
+                                 'MetricName' => 'SuccessCount',
+                                 'Timestamp' => timestamp,
+                                 'Unit' => 'Count',
+                                 'Value' => successful ? 1 : 0,
+                                 'Dimensions' => job_dimensions
+                               },
+                               {
+                                 'MetricName' => 'ErrorCount',
+                                 'Timestamp' => timestamp,
+                                 'Unit' => 'Count',
+                                 'Value' => successful ? 0 : 1,
+                                 'Dimensions' => job_dimensions
+                               },
+                               {
+                                 'MetricName' => 'ExecutionTime',
+                                 'Timestamp' => timestamp,
+                                 'Unit' => 'Milliseconds',
+                                 'Value' => now - start_milliseconds,
+                                 'Dimensions' => job_dimensions
+                               }
+                             ])
+
+          if successful
+            metric_data.concat([
+                                 {
+                                   'MetricName' => 'TimeToCompletion',
+                                   'Timestamp' => timestamp,
+                                   'Unit' => 'Milliseconds',
+                                   'Value' => now - get_milliseconds(message.sent_at),
+                                   'Dimensions' => job_dimensions
+                                 },
+                                 {
+                                   'MetricName' => 'ExecutionAttempts',
+                                   'Timestamp' => timestamp,
+                                   'Unit' => 'Count',
+                                   'Value' => message.receive_count,
+                                   'Dimensions' => job_dimensions
+                                 }
+                               ])
+          end
         end
+
+        cloud_watch.put_metric_data(
+          namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data
+        )
+      end
+    end
+
+    def get_message_body(message)
+      result = message.body
+      message_hash = JSON.parse(result)
+
+      if (!message_hash.key?('type') || !message_hash.key?('version')) && accept_nested_definition
+        result = message_hash[accept_nested_definition]
       end
 
-      cloud_watch.put_metric_data(namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data)
+      result || '{}'
     end
   end
-
-  def get_message_body(message)
-    result = message.body
-    message_hash = JSON.parse(result)
-
-    if (!message_hash.has_key?('type') || !message_hash.has_key?('version')) && accept_nested_definition
-      result = message_hash[accept_nested_definition]
-    end
-
-    result || '{}'
-  end
-
 end
-end
-

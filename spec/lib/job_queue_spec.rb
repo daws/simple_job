@@ -1,12 +1,15 @@
+# frozen_string_literal: true
+
 require 'singleton'
 
 include SimpleJob
 
 RSpec.describe JobQueue do
-
-  before(:each) do
+  before do
     @array_queue_class = Class.new(JobQueue) do
-      def self.name; 'ArrayQueue'; end
+      def self.name
+        'ArrayQueue'
+      end
       register_job_queue 'array', self
 
       include Singleton
@@ -14,18 +17,21 @@ RSpec.describe JobQueue do
         instance
       end
 
-      def self.get_queue(type, options = {})
+      def self.get_queue(_type, _options = {})
         instance
       end
+
       def queue
         @queue ||= []
       end
-      def enqueue(message, options = {})
+
+      def enqueue(message, _options = {})
         queue << message
       end
-      def poll(options = {}, &block)
+
+      def poll(options = {})
         options = {
-          :interval => 0.001
+          interval: 0.001
         }.merge(options)
         loop do
           message = queue.shift
@@ -37,11 +43,13 @@ RSpec.describe JobQueue do
 
     JobDefinition.job_definitions.clear
     @bare_job_class = Class.new do
-      def self.name; 'BareJob'; end
+      def self.name
+        'BareJob'
+      end
       include JobDefinition
     end
 
-    JobQueue.config :implementation => 'array'
+    JobQueue.config implementation: 'array'
   end
 
   subject { @array_queue_class }
@@ -60,17 +68,29 @@ RSpec.describe JobQueue do
     expect(JobQueue.default).to eq(subject.instance)
   end
 
-  it 'should enqueue a JSON message when job enqueue method is called' do
-    job = bare_job_class.new
-    expect { job.enqueue }.to change { subject.instance.queue.size }.from(0).to(1)
-    expect(JSON.parse(subject.instance.queue[0])).to eq({ 'type' => 'bare_job', 'version' => '1', 'data' => {} })
+  shared_examples :job_enqueues do |method_name|
+    it 'should enqueue a JSON message when job enqueue method is called' do
+      job = bare_job_class.new
+      expect { job.public_send(method_name) }
+        .to change { subject.instance.queue.size }.from(0).to(1)
+      expect(JSON.parse(subject.instance.queue[0]))
+        .to eq('type' => 'bare_job', 'version' => '1', 'data' => {})
+    end
+  end
+
+  context '#enqueue' do
+    include_examples :job_enqueues, :enqueue
+  end
+
+  context '#enqueue!' do
+    include_examples :job_enqueues, :enqueue!
   end
 
   it 'should retrieve all messages when polling' do
     retrieved_messages = 0
 
     polling_thread = Thread.new do
-      subject.instance.poll do |message|
+      subject.instance.poll do |_message|
         retrieved_messages += 1
       end
     end
@@ -82,5 +102,4 @@ RSpec.describe JobQueue do
 
     expect(retrieved_messages).to eq(20)
   end
-
 end
