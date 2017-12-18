@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'logger'
 require 'active_model'
 require 'active_support/inflector'
 
 module SimpleJob
   module JobDefinition
-    RESERVED_ATTRIBUTES = [:type, :version, :data]
+    RESERVED_ATTRIBUTES = %i[type version data].freeze
 
     def self.included(klass)
       klass.extend(ClassMethods)
@@ -27,14 +29,14 @@ module SimpleJob
         version = version.to_s
 
         @job_definitions.each do |definition|
-          if (definition[:type] == type) && (definition[:versions].include?(version))
+          if (definition[:type] == type) && definition[:versions].include?(version)
             return definition[:class]
           end
         end
         nil
       end
 
-      alias :class_for :job_definition_class_for
+      alias class_for job_definition_class_for
 
       def job_definitions
         @job_definitions ||= []
@@ -42,16 +44,13 @@ module SimpleJob
     end
 
     # should be overridden by including classes
-    if !method_defined?(:execute)
-      def execute
-      end
-    end
+    def execute; end unless method_defined?(:execute)
 
     def attributes
       {
         'type' => type,
         'version' => version,
-        'data' => data,
+        'data' => data
       }
     end
 
@@ -102,7 +101,7 @@ module SimpleJob
     def enqueue(queue_type = nil, options = {})
       if valid?
         queue = (queue_type && JobQueue[queue_type]) || self.class.job_queue || JobQueue.default
-        queue.enqueue(self.to_json, options)
+        queue.enqueue(to_json, options)
       else
         false
       end
@@ -142,7 +141,7 @@ module SimpleJob
       end
 
       def method_missing(symbol, *args, &block)
-        @logger.send symbol, *args, &block
+        @logger.public_send(symbol, *args, &block)
       end
 
       def add(severity, message = nil, progname = nil, &block)
@@ -156,7 +155,7 @@ module SimpleJob
         @logger.add(severity, message, progname, &block)
       end
 
-      alias :log :add
+      alias log add
 
       [
         ['debug', Logger::DEBUG],
@@ -165,7 +164,8 @@ module SimpleJob
         ['error', Logger::ERROR],
         ['fatal', Logger::FATAL]
       ].each do |method_name, log_level|
-        class_eval "def #{method_name}(progname = nil, &block); add(#{log_level}, nil, progname, &block); end"
+        class_eval "def #{method_name}(progname = nil, &block); " \
+          "add(#{log_level}, nil, progname, &block); end"
       end
     end
 
@@ -175,20 +175,20 @@ module SimpleJob
       end
 
       def register_simple_job(options = {})
-        default_type = self.name.split('::').last.underscore.to_sym
+        default_type = name.split('::').last.underscore.to_sym
 
         replace_existing = options.delete(:replace_existing)
         replace_existing = true if replace_existing.nil?
 
         new_definition = {
-          :class => self,
-          :type => default_type,
-          :versions => ['1'],
+          class: self,
+          type: default_type,
+          versions: ['1']
         }.merge(options)
 
         new_definition[:type] = new_definition[:type].to_sym
         new_definition[:versions] = Array(new_definition[:versions])
-        new_definition[:versions].collect! { |value| value.to_s }
+        new_definition[:versions].map!(&:to_s)
 
         if replace_existing
           ::SimpleJob::JobDefinition.job_definitions.delete(@definition)

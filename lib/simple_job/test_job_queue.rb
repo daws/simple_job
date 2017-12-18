@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleJob
   class TestJobQueue < JobQueue
     register_job_queue 'test', self
@@ -15,9 +17,7 @@ module SimpleJob
     end
 
     def self.clear!
-      queues.each_value do |queue|
-        queue.clear!
-      end
+      queues.each_value(&:clear!)
     end
 
     def self.jobs(type = 'default')

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'socket'
 
 require 'aws-sdk-v1'
@@ -12,15 +14,15 @@ module SimpleJob
 
     def self.config(options = {})
       @config ||= {
-        :queue_prefix => ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX'],
-        :default_visibility_timeout => 60,
-        :environment => (defined?(Rails) && Rails.env) || 'development',
-        :cloud_watch_namespace => nil,
+        queue_prefix: ENV['SIMPLE_JOB_SQS_JOB_QUEUE_PREFIX'],
+        default_visibility_timeout: 60,
+        environment: (defined?(Rails) && Rails.env) || 'development',
+        cloud_watch_namespace: nil
       }
 
       @config.merge!(options) if options
 
-      raise 'must configure :queue_prefix using SQSJobQueue.config' if !@config[:queue_prefix]
+      raise 'must configure :queue_prefix using SQSJobQueue.config' unless @config[:queue_prefix]
 
       @config
     end
@@ -66,7 +68,7 @@ module SimpleJob
       }.merge(options)
       make_default = options.delete(:default)
 
-      queue = self.new(type, options)
+      queue = new(type, options)
       self.queues ||= {}
       self.queues[type] = queue
 
@@ -81,7 +83,7 @@ module SimpleJob
     end
 
     def enqueue(message, options = {})
-      raise("enqueue expects a raw string") unless message.is_a?(String)
+      raise('enqueue expects a raw string') unless message.is_a?(String)
       sqs_queue.send_message(message, options)
     end
 
@@ -127,21 +129,19 @@ module SimpleJob
     # restored once the method returns.
     def poll(options = {}, &block)
       options = {
-        :visibility_timeout => visibility_timeout,
-        :attributes => [:sent_at, :receive_count, :first_received_at],
-        :raise_exceptions => false,
-        :idle_timeout => nil,
-        :poll_interval => DEFAULT_POLL_INTERVAL,
-        :max_executions => nil,
-        :always_sleep => false
+        visibility_timeout: visibility_timeout,
+        attributes: %i[sent_at receive_count first_received_at],
+        raise_exceptions: false,
+        idle_timeout: nil,
+        poll_interval: DEFAULT_POLL_INTERVAL,
+        max_executions: nil,
+        always_sleep: false
       }.merge(options)
 
       message_handler = block || lambda do |definition, message|
         execute_method = definition.method(:execute)
         arguments = []
-        if execute_method.arity >= 1
-          arguments << message
-        end
+        arguments << message if execute_method.arity >= 1
         execute_method.call(*arguments)
       end
 
@@ -149,11 +149,11 @@ module SimpleJob
 
       logger.debug 'trapping terminate signals with function to exit loop'
       signal_exit = lambda do |*_args|
-        logger.info "caught signal to shutdown; finishing current message and quitting..."
+        logger.info 'caught signal to shutdown; finishing current message and quitting...'
         exit_next = true
       end
       previous_traps = {}
-      ['HUP', 'INT', 'TERM'].each do |signal|
+      %w[HUP INT TERM].each do |signal|
         previous_traps[signal] = Signal.trap(signal, signal_exit)
       end
 
@@ -175,19 +175,22 @@ module SimpleJob
               last_message = message
               last_message_at = Time.now.utc
               current_job_type = raw_message['type']
-              definition_class = JobDefinition.job_definition_class_for(raw_message['type'], raw_message['version'])
+              definition_class = JobDefinition.job_definition_class_for(
+                raw_message['type'], raw_message['version']
+              )
 
-              raise('no definition found') if !definition_class
+              raise('no definition found') unless definition_class
 
-              if definition_class.max_attempt_count && (message.receive_count > definition_class.max_attempt_count)
+              if definition_class.max_attempt_count &&
+                 (message.receive_count > definition_class.max_attempt_count)
                 raise('max attempt count reached')
               end
 
               definition = definition_class.new.from_json(message_body)
               last_definition = definition
 
-              # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued after
-              # vis. timeout if this fails or runs too long)
+              # NOTE: only executes if asynchronous_execute is false (message will be re-enqueued
+              # after vis. timeout if this fails or runs too long)
               message_handler.call(definition, message) unless asynchronous_execute
             else
               logger.info("ignoring invalid message: #{message_body}")
@@ -215,7 +218,9 @@ module SimpleJob
             log_execution(true, last_message, current_job_type, current_start_milliseconds)
           end
 
-          break if options[:idle_timeout] && ((Time.now.utc - last_message_at) > options[:idle_timeout])
+          if options[:idle_timeout] && ((Time.now.utc - last_message_at) > options[:idle_timeout])
+            break
+          end
 
           if options[:always_sleep] || !last_message
             Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
@@ -223,13 +228,17 @@ module SimpleJob
         rescue SystemExit => e
           raise e
         rescue StandardError => e
-          log_execution(false, last_message, current_job_type, current_start_milliseconds) rescue nil
+          begin
+            log_execution(false, last_message, current_job_type, current_start_milliseconds)
+          rescue StandardError
+            nil
+          end
 
           if options[:raise_exceptions]
             raise e
           else
             logger.error("unable to process message: #{e.message}")
-            logger.error("message body: #{last_message && last_message.body}")
+            logger.error("message body: #{last_message&.body}")
             logger.error(e.backtrace.join("\n  "))
           end
         end
@@ -242,7 +251,7 @@ module SimpleJob
         Signal.trap(signal, command)
       end
 
-      logger.info "shutdown successful"
+      logger.info 'shutdown successful'
     end
 
     private
@@ -251,11 +260,13 @@ module SimpleJob
       attr_accessor :queues
     end
 
-    attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch, :accept_nested_definition
+    attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch,
+                  :accept_nested_definition
 
     def initialize(type, visibility_timeout:, asynchronous_execute:, accept_nested_definition: nil)
       sqs = ::AWS::SQS.new
-      self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-#{self.class.config[:environment]}"
+      self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-" \
+        "#{self.class.config[:environment]}"
       self.sqs_queue = sqs.queues.create(queue_name)
       self.visibility_timeout = visibility_timeout
       self.asynchronous_execute = asynchronous_execute
@@ -276,8 +287,8 @@ module SimpleJob
         timestamp = Time.now.utc.to_s
         environment = self.class.config[:environment]
 
-        # localhost throws an error when calling Socket.gethostbyname, so don't call it in dev & test
-        hostname = if %w(development test).include?(environment)
+        # localhost throws an error when calling Socket.gethostbyname, don't call it in dev & test
+        hostname = if %w[development test].include?(environment)
                      Socket.gethostname
                    else
                      Socket.gethostbyname(Socket.gethostname).first
@@ -286,11 +297,11 @@ module SimpleJob
         message_dimensions = [
           { 'Name' => 'Environment', 'Value' => environment },
           { 'Name' => 'SQSQueueName', 'Value' => queue_name },
-          { 'Name' => 'Host', 'Value' => hostname },
+          { 'Name' => 'Host', 'Value' => hostname }
         ]
 
         job_dimensions = message_dimensions + [
-          { 'Name' => 'JobType', 'Value' => job_type },
+          { 'Name' => 'JobType', 'Value' => job_type }
         ]
 
         metric_data = [
@@ -371,7 +382,9 @@ module SimpleJob
           end
         end
 
-        cloud_watch.put_metric_data(namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data)
+        cloud_watch.put_metric_data(
+          namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data
+        )
       end
     end
 
@@ -379,7 +392,7 @@ module SimpleJob
       result = message.body
       message_hash = JSON.parse(result)
 
-      if (!message_hash.has_key?('type') || !message_hash.has_key?('version')) && accept_nested_definition
+      if (!message_hash.key?('type') || !message_hash.key?('version')) && accept_nested_definition
         result = message_hash[accept_nested_definition]
       end
 

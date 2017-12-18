@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleJob
   autoload :JobDefinition, 'simple_job/job_definition'
   autoload :JobQueue, 'simple_job/job_queue'

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require 'logger'
 require 'aws-sdk-v1'
 
-# Requires the aws-sdk gem, which must be initialized for this API to be capable of queuing requests.
+# Requires the aws-sdk gem, which must be initialized for this API to be capable of queuing requests
 #
 # Synopsis:
 #
@@ -62,8 +64,8 @@ module SimpleJob
 
     def self.config(options = {})
       @config ||= {
-        :implementation => 'sqs',
-        :logger => default_logger,
+        implementation: 'sqs',
+        logger: default_logger
       }
       @config.merge!(options) if options
       @config
@@ -74,7 +76,7 @@ module SimpleJob
     end
 
     def self.default_queue
-      raise "default queue not defined"
+      raise 'default queue not defined'
     end
 
     def self.default
