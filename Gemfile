@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 gemspec
@@ -8,12 +10,12 @@ end
 
 group :test do
   gem 'rspec', '~> 3.7'
-  gem 'simplecov'
+
   gem 'byebug'
   gem 'rubocop'
+  gem 'simplecov'
 
-  ['activemodel', 'activesupport'].each do |rails_gem|
+  %w[activemodel activesupport].each do |rails_gem|
     gem rails_gem, '~> 5.0.3'
   end
 end
-
