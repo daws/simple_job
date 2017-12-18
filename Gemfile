@@ -10,6 +10,7 @@ group :test do
   gem 'rspec', '~> 3.7'
   gem 'simplecov'
   gem 'byebug'
+  gem 'rubocop'
 
   ['activemodel', 'activesupport'].each do |rails_gem|
     gem rails_gem, '~> 5.0.3'

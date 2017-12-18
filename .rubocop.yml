@@ -1,0 +1,75 @@
+AllCops:
+  TargetRubyVersion: 2.4
+  Exclude:
+    - 'bundle/**/*'
+    # - 'bin/*'
+    # - 'db/schema.rb'
+    - 'vendor/bundle/**/*'
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+Rails:
+  Enabled: true
+Metrics/LineLength:
+  Max: 100
+Metrics/MethodLength:
+  Max: 15
+Style/Documentation:
+  Enabled: false
+
+# The following are disabled by default, but we want them enabled
+Layout/FirstArrayElementLineBreak:
+  Enabled: true
+Layout/FirstHashElementLineBreak:
+  Enabled: true
+Layout/FirstMethodArgumentLineBreak:
+  Enabled: true
+Layout/FirstMethodParameterLineBreak:
+  Enabled: true
+Rails/SaveBang:
+  Enabled: true
+Style/AutoResourceCleanup:
+  Enabled: true
+Style/CollectionMethods:
+  Enabled: true
+Style/ImplicitRuntimeError:
+  Enabled: true
+Style/MethodCalledOnDoEndBlock:
+  Enabled: true
+Style/OptionHash:
+  Enabled: true
+Style/ReturnNil:
+  Enabled: true
+Style/Send:
+  Enabled: true
+Style/SingleLineBlockParams:
+  Enabled: true
+Style/StringMethods:
+  Enabled: true
+
+# # Changing the default config
+# Metrics/BlockLength:
+#   Exclude:
+#     - 'benchmarks/amenities.rb'
+#     - 'config/environments/production.rb'
+#     - 'config/environments/qa.rb'
+#     - 'db/migrate/20160713201011_create_bdc_all.rb'
+#     - 'Rakefile'
+#     - 'lib/tasks/*.rake'
+#     - 'spec/**/*.rb'
+# Naming/VariableNumber:
+#   EnforcedStyle: snake_case
+# Rails/UnknownEnv:
+#   Environments:
+#     - qa
+#     - development
+#     - test
+#     - production
+
+
+# # Want to enable, need to investigate the impacts
+# Rails/SkipsModelValidations:
+#   Enabled: false
+# Rails/HasManyOrHasOneDependent:
+#   Enabled: false
+# Rails/InverseOf:
+#   Enabled: false
