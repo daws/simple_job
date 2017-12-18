@@ -7,7 +7,7 @@ group :rake do
 end
 
 group :test do
-  gem 'rspec', '~> 3.6'
+  gem 'rspec', '~> 3.7'
   gem 'simplecov'
   gem 'byebug'
 
