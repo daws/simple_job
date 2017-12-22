@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'logger'
-require 'aws-sdk-v1'
 
 # Requires the aws-sdk gem, which must be initialized for this API to be capable of queuing requests
 #
@@ -76,7 +75,7 @@ module SimpleJob
     end
 
     def self.default_queue
-      raise 'default queue not defined'
+      raise StandardError, 'default queue not defined'
     end
 
     def self.default
@@ -84,7 +83,7 @@ module SimpleJob
     end
 
     def self.get_queue(type, _options = {})
-      raise "queue with type #{type} not defined"
+      raise StandardError, "queue with type #{type} not defined"
     end
 
     def self.queue_class

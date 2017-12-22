@@ -108,7 +108,8 @@ module SimpleJob
     end
 
     def enqueue!(queue_type = nil)
-      enqueue(queue_type) || raise("object is not valid: #{errors.full_messages.join('; ')}")
+      enqueue(queue_type) ||
+        (raise ArgumentError, "object is not valid: #{errors.full_messages.join('; ')}")
     end
 
     def read_simple_job_attribute(attribute)
@@ -164,8 +165,9 @@ module SimpleJob
         ['error', Logger::ERROR],
         ['fatal', Logger::FATAL]
       ].each do |method_name, log_level|
-        class_eval "def #{method_name}(progname = nil, &block); " \
+        str = "def #{method_name}(progname = nil, &block); " \
           "add(#{log_level}, nil, progname, &block); end"
+        class_eval str, __FILE__, __LINE__
       end
     end
 
@@ -217,12 +219,12 @@ module SimpleJob
           attribute = attribute.to_sym
 
           if RESERVED_ATTRIBUTES.include?(attribute)
-            raise "attempted to declare reserved attribute: #{attribute}"
+            raise ArgumentError, "attempted to declare reserved attribute: #{attribute}"
           end
 
           simple_job_attributes << attribute
 
-          class_eval <<-__METHOD_DEFS__
+          class_eval <<-__METHOD_DEFS__, __FILE__, __LINE__ + 1
           def #{attribute}
             read_simple_job_attribute(:#{attribute})
           end

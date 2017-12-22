@@ -1,125 +1,108 @@
 # frozen_string_literal: true
 
 RSpec.describe SimpleJob::SQSJobQueue do
-  before(:all) do
-    SimpleJob::SQSJobQueue.config(
-      queue_prefix: 'simple-job', environment: 'test', cloud_watch_namespace: 'tests'
-    )
-    SimpleJob::JobQueue.config implementation: 'sqs'
-  end
-
   before do
-    allow(AWS::SQS).to receive_messages(new: sqs)
-    SimpleJob::JobDefinition.job_definitions.clear
-  end
-
-  let(:sqs) { instance_double(AWS::SQS, queues: sqs_queues) }
-  let(:sqs_queues) do
-    class_def = Class.new do
-      def initialize(sqs_queue_class)
-        @sqs_queue_class = sqs_queue_class
-        @queues = {}
-      end
-
-      def create(name)
-        @queues[name] ||= @sqs_queue_class.new
-      end
-    end
-    class_def.new(sqs_queue_class)
-  end
-  let(:sqs_queue_class) do
-    Class.new do
-      attr_reader :messages
-      def initialize
-        @messages = []
-      end
-
-      def send_message(message, _options = {})
-        @messages << message
-      end
-
-      def receive_messages(_options = {})
-        @messages.each do |message|
-          yield(OpenStruct.new(body: message))
-        end
-        @messages.clear
-      end
-    end
-  end
-
-  let!(:normal_queue) do
-    SimpleJob::SQSJobQueue.define_queue(
-      'normal', default: true, accept_nested_definition: 'NotificationMetadata'
+    SimpleJob::SQSJobQueue.config(
+      queue_prefix: 'simple-job',
+      environment: 'test',
+      cloud_watch_namespace: 'test'
     )
+    SimpleJob::SQSJobQueue.queues = {}
+    SimpleJob::SQSJobQueue.instance_variable_set(:@default_queue, nil)
   end
-  let!(:high_priority_queue) do
-    SimpleJob::SQSJobQueue.define_queue('high-priority', visibility_timeout: 10)
+
+  describe '.default_queue', :vcr do
+    let!(:queue) { SimpleJob::SQSJobQueue.define_queue('test', default: default) }
+
+    context 'default_queue is defined' do
+      let(:default) { true }
+
+      it 'returns the default_queue' do
+        expect(SimpleJob::SQSJobQueue.default_queue).to eq(queue)
+      end
+    end
+
+    context 'default_queue is not defined' do
+      let(:default) { false }
+
+      it 'raises an error' do
+        expect { SimpleJob::SQSJobQueue.default_queue }
+          .to raise_error(StandardError, 'default queue not defined')
+      end
+    end
   end
-  let!(:foo_sender_class) do
-    Class.new do
-      @executions = []
-      class << self
-        attr_accessor :executions
-        def name
-          'FooSender'
+
+  describe '.get_queue', :vcr do
+    let!(:queue) { SimpleJob::SQSJobQueue.define_queue('test') }
+
+    context 'when the queue is not found' do
+      it 'raises an error' do
+        expect { SimpleJob::SQSJobQueue.get_queue('testzzz') }
+          .to raise_error(StandardError, 'queue with type testzzz not defined')
+      end
+    end
+
+    context 'when the queue is found' do
+      it 'returns the queue' do
+        expect(SimpleJob::SQSJobQueue.get_queue('test')).to eq(queue)
+      end
+    end
+  end
+
+  describe 'with a defined queue' do
+    let(:queue) do
+      VCR.use_cassette('queue_create') do
+        SimpleJob::SQSJobQueue.define_queue('test')
+      end
+    end
+
+    it 'has the correct queue name' do
+      expect(queue.instance_variable_get(:@queue_name)).to eq('simple-job-test-test')
+    end
+
+    describe '#poll' do
+      let!(:job_definition) do
+        Class.new do
+          def self.name
+            'TestJobDefinition'
+          end
+          include SimpleJob::JobDefinition
+
+          simple_job_attribute :user_id
+
+          def execute
+            self.class.received_data << data
+          end
+
+          def self.received_data
+            @received_data ||= []
+          end
         end
       end
-      include SimpleJob::JobDefinition
-      simple_job_attribute :target, :foo_content
-      validates :target, presence: true
-      def execute
-        self.class.executions << self
+
+      let(:message_hash) do
+        {
+          'type' => 'test_job_definition',
+          'version' => '1',
+          'data' => { 'user_id' => 123 }
+        }
+      end
+      let(:other_message_hash) do
+        {
+          'type' => 'test_job_definition',
+          'version' => '1',
+          'data' => { 'user_id' => 456 }
+        }
       end
 
-      def ==(other)
-        (target == other.target) && (foo_content == other.foo_content)
+      it 'can process multiple messages', :vcr do
+        queue.enqueue(JSON.dump(message_hash))
+        queue.enqueue(JSON.dump(other_message_hash))
+
+        queue.poll(poll_interval: 0, max_executions: 2)
+        expect(job_definition.received_data)
+          .to match_array([{ 'user_id' => 456 }, { 'user_id' => 123 }])
       end
-
-      def name
-        self.class.name
-      end
     end
-  end
-
-  context 'default queue' do
-    subject { normal_queue }
-
-    it { is_expected.to eq(SimpleJob::JobQueue.default) }
-    it { is_expected.to eq(SimpleJob::JobQueue['normal']) }
-
-    it 'should be able to complete a round trip of enqueue and poll' do
-      foo = foo_sender_class.new(target: 'joe', foo_content: 'foo!')
-      foo.enqueue
-      subject.poll(max_executions: 1)
-
-      expect(foo_sender_class.executions).to eq([foo])
-    end
-  end
-
-  context 'high priority queue' do
-    subject { high_priority_queue }
-
-    it { is_expected.to eq(SimpleJob::JobQueue['high-priority']) }
-  end
-
-  shared_examples 'a standard message' do |message|
-    before do
-      normal_queue.enqueue(message.to_json)
-      normal_queue.poll(max_executions: 1)
-    end
-
-    it 'should execute FooSender' do
-      expect(foo_sender_class.executions.size).to eq(1)
-    end
-  end
-
-  context 'standard message' do
-    it_should_behave_like 'a standard message', type: 'foo_sender', version: '1'
-  end
-
-  context 'message constructed by auto scaling' do
-    it_should_behave_like 'a standard message',
-                          AutoScalingGroupName: 'stash_website_production_1',
-                          NotificationMetadata: JSON.dump(type: 'foo_sender', version: '1')
   end
 end

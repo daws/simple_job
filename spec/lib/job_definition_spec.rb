@@ -225,7 +225,7 @@ RSpec.describe JobDefinition do
     end
 
     it 'errors' do
-      expect { invalid_job.new }.to raise_error(RuntimeError, /attribute\: data/)
+      expect { invalid_job.new }.to raise_error(ArgumentError, /attribute\: data/)
     end
   end
 end
