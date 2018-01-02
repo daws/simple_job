@@ -14,6 +14,8 @@ group :test do
   gem 'byebug'
   gem 'rubocop'
   gem 'simplecov'
+  gem 'vcr'
+  gem 'webmock'
 
   %w[activemodel activesupport].each do |rails_gem|
     gem rails_gem, '~> 5.0.3'

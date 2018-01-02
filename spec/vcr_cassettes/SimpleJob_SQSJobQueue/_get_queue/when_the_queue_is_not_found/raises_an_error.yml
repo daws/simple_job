@@ -1,0 +1,51 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://sqs.us-east-1.amazonaws.com/
+    body:
+      encoding: UTF-8
+      string: Action=CreateQueue&QueueName=simple-job-test-test&Version=2012-11-05
+    headers:
+      Content-Type:
+      - application/x-www-form-urlencoded; charset=utf-8
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
+      X-Amz-Date:
+      - 20171222T220450Z
+      Host:
+      - sqs.us-east-1.amazonaws.com
+      X-Amz-Content-Sha256:
+      - f850bf8c73948478be235b2c2422822c16b89bea05c42ea2dd4772da660a15b8
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=f7e0d407a017ee3854c14cb7f13bc6ee919971e231807cc50cd5d5c0cff97cd5
+      Content-Length:
+      - '68'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - Server
+      Date:
+      - Fri, 22 Dec 2017 22:04:50 GMT
+      Content-Type:
+      - text/xml
+      Content-Length:
+      - '340'
+      Connection:
+      - keep-alive
+      X-Amzn-Requestid:
+      - 8efa710f-b881-5850-9c35-23b83b43aa0a
+    body:
+      encoding: UTF-8
+      string: <?xml version="1.0"?><CreateQueueResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><CreateQueueResult><QueueUrl>https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test</QueueUrl></CreateQueueResult><ResponseMetadata><RequestId>8efa710f-b881-5850-9c35-23b83b43aa0a</RequestId></ResponseMetadata></CreateQueueResponse>
+    http_version: 
+  recorded_at: Fri, 22 Dec 2017 22:04:50 GMT
+recorded_with: VCR 4.0.0

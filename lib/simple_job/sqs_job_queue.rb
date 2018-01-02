@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require 'socket'
-
-require 'aws-sdk-v1'
+require 'aws-sdk'
 
 module SimpleJob
   # A SimpleJob::JobQueue implementation that uses AWS SQS
@@ -22,7 +21,9 @@ module SimpleJob
 
       @config.merge!(options) if options
 
-      raise 'must configure :queue_prefix using SQSJobQueue.config' unless @config[:queue_prefix]
+      unless @config[:queue_prefix]
+        raise ArgumentError, 'must configure :queue_prefix using SQSJobQueue.config'
+      end
 
       @config
     end
@@ -83,8 +84,8 @@ module SimpleJob
     end
 
     def enqueue(message, options = {})
-      raise('enqueue expects a raw string') unless message.is_a?(String)
-      sqs_queue.send_message(message, options)
+      raise ArgumentError 'enqueue expects a raw string' unless message.is_a?(String)
+      sqs_queue.send_message(options.merge(message_body: message, queue_url: sqs_queue_url))
     end
 
     # Polls the queue, matching incoming messages with registered jobs, and
@@ -138,6 +139,13 @@ module SimpleJob
         always_sleep: false
       }.merge(options)
 
+      sqs_receive_options = {
+        visibility_timeout: options[:visibility_timeout],
+        idle_timeout: options[:idle_timeout],
+        queue_url: sqs_queue_url,
+        max_number_of_messages: 1
+      }
+
       message_handler = block || lambda do |definition, message|
         execute_method = definition.method(:execute)
         arguments = []
@@ -167,7 +175,7 @@ module SimpleJob
         current_start_milliseconds = get_milliseconds
         current_job_type = 'unknown'
         begin
-          sqs_queue.receive_messages(options) do |message|
+          sqs_queue.receive_message(sqs_receive_options).messages.each do |message|
             message_body = get_message_body(message)
             raw_message = JSON.parse(message_body)
 
@@ -179,11 +187,11 @@ module SimpleJob
                 raw_message['type'], raw_message['version']
               )
 
-              raise('no definition found') unless definition_class
+              raise StandardError, 'no definition found' unless definition_class
 
               if definition_class.max_attempt_count &&
                  (message.receive_count > definition_class.max_attempt_count)
-                raise('max attempt count reached')
+                raise StandardError, 'max attempt count reached'
               end
 
               definition = definition_class.new.from_json(message_body)
@@ -207,6 +215,7 @@ module SimpleJob
               # in child
               begin
                 message_handler.call(last_definition, last_message)
+                delete_message(last_message)
                 log_execution(true, last_message, current_job_type, current_start_milliseconds)
               rescue StandardError => e
                 logger.error("error executing asynchronous job: #{e.message}")
@@ -215,6 +224,7 @@ module SimpleJob
               exit # rubocop:disable Rails/Exit
             end
           else
+            delete_message(last_message)
             log_execution(true, last_message, current_job_type, current_start_milliseconds)
           end
 
@@ -223,7 +233,7 @@ module SimpleJob
           end
 
           if options[:always_sleep] || !last_message
-            Kernel.sleep(options[:poll_interval]) unless options[:poll_interval] == 0
+            Kernel.sleep(options[:poll_interval]) unless options[:poll_interval].zero?
           end
         rescue SystemExit => e
           raise e
@@ -234,13 +244,11 @@ module SimpleJob
             nil
           end
 
-          if options[:raise_exceptions]
-            raise e
-          else
-            logger.error("unable to process message: #{e.message}")
-            logger.error("message body: #{last_message&.body}")
-            logger.error(e.backtrace.join("\n  "))
-          end
+          raise e if options[:raise_exceptions]
+
+          logger.error("unable to process message: #{e.message}")
+          logger.error("message body: #{last_message&.body}")
+          logger.error(e.backtrace.join("\n  "))
         end
         max_executions -= 1 if max_executions
         break if exit_next
@@ -254,24 +262,31 @@ module SimpleJob
       logger.info 'shutdown successful'
     end
 
+    def delete_message(message)
+      return unless message
+
+      sqs_queue.delete_message(queue_url: sqs_queue_url, receipt_handle: message.receipt_handle)
+    end
+
     private
 
     class << self
       attr_accessor :queues
     end
 
-    attr_accessor :queue_name, :sqs_queue, :visibility_timeout, :asynchronous_execute, :cloud_watch,
-                  :accept_nested_definition
+    attr_accessor :visibility_timeout, :asynchronous_execute, :accept_nested_definition,
+                  :queue_name, :cloud_watch, :sqs_queue, :sqs_queue_url
 
     def initialize(type, visibility_timeout:, asynchronous_execute:, accept_nested_definition: nil)
-      sqs = ::AWS::SQS.new
-      self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-" \
-        "#{self.class.config[:environment]}"
-      self.sqs_queue = sqs.queues.create(queue_name)
       self.visibility_timeout = visibility_timeout
       self.asynchronous_execute = asynchronous_execute
-      self.cloud_watch = AWS::CloudWatch.new
       self.accept_nested_definition = accept_nested_definition
+
+      self.queue_name = "#{self.class.config[:queue_prefix]}-#{type}-" \
+        "#{self.class.config[:environment]}"
+      self.cloud_watch = Aws::CloudWatch::Client.new
+      self.sqs_queue = Aws::SQS::Client.new
+      self.sqs_queue_url = sqs_queue.create_queue(queue_name: queue_name).queue_url
     end
 
     def logger
@@ -282,110 +297,114 @@ module SimpleJob
       (time.to_f * 1000).round
     end
 
+    # localhost throws an error when calling Socket.gethostbyname, don't call it in dev & test
+    def hostname
+      @hostname ||= if %w[development test].include?(self.class.config[:environment])
+                      Socket.gethostname
+                    else
+                      Socket.gethostbyname(Socket.gethostname).first
+                    end
+    end
+
     def log_execution(successful, message, job_type, start_milliseconds)
-      if self.class.config[:cloud_watch_namespace]
-        timestamp = Time.now.utc.to_s
-        environment = self.class.config[:environment]
+      return unless self.class.config[:cloud_watch_namespace]
 
-        # localhost throws an error when calling Socket.gethostbyname, don't call it in dev & test
-        hostname = if %w[development test].include?(environment)
-                     Socket.gethostname
-                   else
-                     Socket.gethostbyname(Socket.gethostname).first
-                   end
+      timestamp = Time.now.utc.iso8601
 
-        message_dimensions = [
-          { 'Name' => 'Environment', 'Value' => environment },
-          { 'Name' => 'SQSQueueName', 'Value' => queue_name },
-          { 'Name' => 'Host', 'Value' => hostname }
-        ]
+      message_dimensions = [
+        { name: 'Environment', value: self.class.config[:environment] },
+        { name: 'SQSQueueName', value: queue_name },
+        { name: 'Host', value: hostname }
+      ]
 
-        job_dimensions = message_dimensions + [
-          { 'Name' => 'JobType', 'Value' => job_type }
-        ]
+      job_dimensions = message_dimensions + [
+        { name: 'JobType', value: job_type }
+      ]
 
-        metric_data = [
-          {
-            'MetricName' => 'MessageCheckCount',
-            'Timestamp' => timestamp,
-            'Unit' => 'Count',
-            'Value' => 1,
-            'Dimensions' => message_dimensions
-          },
-          {
-            'MetricName' => 'MessageReceivedCount',
-            'Timestamp' => timestamp,
-            'Unit' => 'Count',
-            'Value' => message ? 1 : 0,
-            'Dimensions' => message_dimensions
-          },
-          {
-            'MetricName' => 'MessageMissCount',
-            'Timestamp' => timestamp,
-            'Unit' => 'Count',
-            'Value' => message ? 0 : 1,
-            'Dimensions' => message_dimensions
-          }
-        ]
+      metric_data = [
+        {
+          metric_name: 'MessageCheckCount',
+          timestamp: timestamp,
+          unit: 'Count',
+          value: 1,
+          dimensions: message_dimensions
+        },
+        {
+          metric_name: 'MessageReceivedCount',
+          timestamp: timestamp,
+          unit: 'Count',
+          value: message ? 1 : 0,
+          dimensions: message_dimensions
+        },
+        {
+          metric_name: 'MessageMissCount',
+          timestamp: timestamp,
+          unit: 'Count',
+          value: message ? 0 : 1,
+          dimensions: message_dimensions
+        }
+      ]
 
-        if message
-          now = get_milliseconds
+      if message
+        now = get_milliseconds
 
+        metric_data.concat([
+                             {
+                               metric_name: 'ExecutionCount',
+                               timestamp: timestamp,
+                               unit: 'Count',
+                               value: 1,
+                               dimensions: job_dimensions
+                             },
+                             {
+                               metric_name: 'SuccessCount',
+                               timestamp: timestamp,
+                               unit: 'Count',
+                               value: successful ? 1 : 0,
+                               dimensions: job_dimensions
+                             },
+                             {
+                               metric_name: 'ErrorCount',
+                               timestamp: timestamp,
+                               unit: 'Count',
+                               value: successful ? 0 : 1,
+                               dimensions: job_dimensions
+                             },
+                             {
+                               metric_name: 'ExecutionTime',
+                               timestamp: timestamp,
+                               unit: 'Milliseconds',
+                               value: now - start_milliseconds,
+                               dimensions: job_dimensions
+                             }
+                           ])
+
+        if successful
+          attributes = message.attributes
+          sent_timestamp = attributes['SentTimestamp'].to_i
+          receive_count = attributes['ApproximateReceiveCount'].to_i
           metric_data.concat([
                                {
-                                 'MetricName' => 'ExecutionCount',
-                                 'Timestamp' => timestamp,
-                                 'Unit' => 'Count',
-                                 'Value' => 1,
-                                 'Dimensions' => job_dimensions
+                                 metric_name: 'TimeToCompletion',
+                                 timestamp: timestamp,
+                                 unit: 'Milliseconds',
+                                 value: now - sent_timestamp,
+                                 dimensions: job_dimensions
                                },
                                {
-                                 'MetricName' => 'SuccessCount',
-                                 'Timestamp' => timestamp,
-                                 'Unit' => 'Count',
-                                 'Value' => successful ? 1 : 0,
-                                 'Dimensions' => job_dimensions
-                               },
-                               {
-                                 'MetricName' => 'ErrorCount',
-                                 'Timestamp' => timestamp,
-                                 'Unit' => 'Count',
-                                 'Value' => successful ? 0 : 1,
-                                 'Dimensions' => job_dimensions
-                               },
-                               {
-                                 'MetricName' => 'ExecutionTime',
-                                 'Timestamp' => timestamp,
-                                 'Unit' => 'Milliseconds',
-                                 'Value' => now - start_milliseconds,
-                                 'Dimensions' => job_dimensions
+                                 metric_name: 'ExecutionAttempts',
+                                 timestamp: timestamp,
+                                 unit: 'Count',
+                                 value: receive_count,
+                                 dimensions: job_dimensions
                                }
                              ])
-
-          if successful
-            metric_data.concat([
-                                 {
-                                   'MetricName' => 'TimeToCompletion',
-                                   'Timestamp' => timestamp,
-                                   'Unit' => 'Milliseconds',
-                                   'Value' => now - get_milliseconds(message.sent_at),
-                                   'Dimensions' => job_dimensions
-                                 },
-                                 {
-                                   'MetricName' => 'ExecutionAttempts',
-                                   'Timestamp' => timestamp,
-                                   'Unit' => 'Count',
-                                   'Value' => message.receive_count,
-                                   'Dimensions' => job_dimensions
-                                 }
-                               ])
-          end
         end
-
-        cloud_watch.put_metric_data(
-          namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data
-        )
       end
+
+      cloud_watch.put_metric_data(
+        namespace: self.class.config[:cloud_watch_namespace], metric_data: metric_data
+      )
     end
 
     def get_message_body(message)

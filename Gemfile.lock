@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    simple_job (0.15.0)
+    simple_job (0.16.0)
       activemodel (> 4.2, < 6)
       activesupport (> 4.2, < 6)
-      aws-sdk-v1 (~> 1.67)
+      aws-sdk (~> 2.10)
 
 GEM
   remote: https://rubygems.org/
@@ -16,25 +16,34 @@ GEM
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+    addressable (2.5.2)
+      public_suffix (>= 2.0.2, < 4.0)
     ast (2.3.0)
-    aws-sdk-v1 (1.67.0)
-      json (~> 1.4)
-      nokogiri (~> 1)
+    aws-sdk (2.10.109)
+      aws-sdk-resources (= 2.10.109)
+    aws-sdk-core (2.10.109)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.10.109)
+      aws-sdk-core (= 2.10.109)
+    aws-sigv4 (1.0.2)
     byebug (9.1.0)
     concurrent-ruby (1.0.5)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     diff-lcs (1.3)
     docile (1.1.5)
+    hashdiff (0.3.7)
     i18n (0.9.1)
       concurrent-ruby (~> 1.0)
-    json (1.8.6)
-    mini_portile2 (2.3.0)
+    jmespath (1.3.1)
+    json (2.1.0)
     minitest (5.10.3)
-    nokogiri (1.8.1)
-      mini_portile2 (~> 2.3.0)
     parallel (1.12.1)
     parser (2.4.0.2)
       ast (~> 2.3)
     powerpack (0.1.1)
+    public_suffix (3.0.1)
     rainbow (3.0.0)
     rake (12.3.0)
     rspec (3.7.0)
@@ -58,6 +67,7 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
+    safe_yaml (1.0.4)
     simple_gem (1.1.0)
       activesupport (>= 3.0)
       rake (>= 0.8.7)
@@ -70,6 +80,11 @@ GEM
     tzinfo (1.2.4)
       thread_safe (~> 0.1)
     unicode-display_width (1.3.0)
+    vcr (4.0.0)
+    webmock (3.1.1)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff
 
 PLATFORMS
   ruby
@@ -83,6 +98,8 @@ DEPENDENCIES
   simple_gem
   simple_job!
   simplecov
+  vcr
+  webmock
 
 BUNDLED WITH
    1.16.0

@@ -22,5 +22,5 @@ Gem::Specification.new do |s|
   # dependencies
   s.add_dependency 'activemodel', '> 4.2', '< 6'
   s.add_dependency 'activesupport', '> 4.2', '< 6'
-  s.add_dependency 'aws-sdk-v1', '~> 1.67'
+  s.add_dependency 'aws-sdk', '~> 2.10'
 end
