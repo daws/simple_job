@@ -1,5 +1,8 @@
 = Simple Job
 
+== Version 0.17.0
+* upgraded to aws-sdk v3
+
 == Version 0.16.0
 * upgrade to aws-sdk v2
 * update .ruby-version to 2.4.2
