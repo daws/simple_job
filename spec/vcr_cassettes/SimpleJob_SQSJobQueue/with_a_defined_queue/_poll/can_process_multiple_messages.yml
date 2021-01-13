@@ -12,16 +12,16 @@ http_interactions:
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232437Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205054Z
       X-Amz-Content-Sha256:
       - 7f8fbb32fe65b635a89ba5199fb6607a4bebd1a0bd1c6a77ef6037b4d392b162
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=749ceef9d6231934c27d57979683075a8ac57399452ab6aaab50cba0c30943a4
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=429fd9505039e5ad9e577d75c07f1c892d96d62d00bddc60dba5c22a6bb14671
       Content-Length:
       - '250'
       Accept:
@@ -31,23 +31,19 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 2b366552-0312-5fc7-adb0-3d2b5c7d1781
       Date:
-      - Fri, 22 Dec 2017 23:24:38 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '378'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - 2e39429d-3b74-52d8-8cda-102aad02f5f0
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><SendMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><SendMessageResult><MessageId>1eb00601-88ce-46eb-9c72-7614c84d0712</MessageId><MD5OfMessageBody>ed7124b3f8ba1367789d0b0e062cbe0d</MD5OfMessageBody></SendMessageResult><ResponseMetadata><RequestId>2e39429d-3b74-52d8-8cda-102aad02f5f0</RequestId></ResponseMetadata></SendMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:38 GMT
+      string: <?xml version="1.0"?><SendMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><SendMessageResult><MessageId>d43f2e43-dd38-43d7-b6bf-218738cbc67b</MessageId><MD5OfMessageBody>ed7124b3f8ba1367789d0b0e062cbe0d</MD5OfMessageBody></SendMessageResult><ResponseMetadata><RequestId>2b366552-0312-5fc7-adb0-3d2b5c7d1781</RequestId></ResponseMetadata></SendMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test
@@ -60,16 +56,16 @@ http_interactions:
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232438Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
       - 9cb687027201ae52207f0fdf4d4a63d3d40f77ebccb8aba83883f7eab58ea708
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=b59bda0696921b263a281b8b04125a41e2ea7d51b0577dc343b951ff7231a11b
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=d5052416b602ba049737908295778dc8e9c862bc40b088e16872143cea2f50e2
       Content-Length:
       - '250'
       Accept:
@@ -79,23 +75,19 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 115fdb41-5fa6-5761-a70c-833800c934e0
       Date:
-      - Fri, 22 Dec 2017 23:24:39 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '378'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - ea69df22-691f-50bd-9d08-8d95ff68156a
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><SendMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><SendMessageResult><MessageId>c3c77ab9-3871-4340-a1d6-8f65891b2c80</MessageId><MD5OfMessageBody>385ad7bb018debd0383243070b76e712</MD5OfMessageBody></SendMessageResult><ResponseMetadata><RequestId>ea69df22-691f-50bd-9d08-8d95ff68156a</RequestId></ResponseMetadata></SendMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:39 GMT
+      string: <?xml version="1.0"?><SendMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><SendMessageResult><MessageId>c9d82a99-6445-4eeb-b933-c647d4578ee5</MessageId><MD5OfMessageBody>385ad7bb018debd0383243070b76e712</MD5OfMessageBody></SendMessageResult><ResponseMetadata><RequestId>115fdb41-5fa6-5761-a70c-833800c934e0</RequestId></ResponseMetadata></SendMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test
@@ -108,16 +100,16 @@ http_interactions:
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232439Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
       - 7783b0354d412871731d41f8a05c0659d618f534722bd19e4c14ba6fa223bbae
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=44e85a858f8d9c73efe409433f36b8b34842c0f819277a58ebee01e351eb3e2f
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=eeae4ccce500da06eef6d562f8ec27632281654905401d8516a0bf15e6b56753
       Content-Length:
       - '172'
       Accept:
@@ -127,47 +119,43 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 3fe80ea9-29ba-5ad4-9feb-56d076d5ed2d
       Date:
-      - Fri, 22 Dec 2017 23:24:39 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '978'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - 5c31d203-c382-5cb1-a807-80b455f583f7
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><ReceiveMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ReceiveMessageResult><Message><MessageId>1eb00601-88ce-46eb-9c72-7614c84d0712</MessageId><ReceiptHandle>AQEB0CULc4H/Slt6PNRk22LguzglQAM8eAck7Eft/JEtxNFRV3YFesNFgcuFBby0qCLnMMQ/yHqSpWcvwq+Nuy+nBCUh9n1dPG8jgg4QXnrtkNq8OuzqmgFGioksG3h+1kEptPprjiC7zQgvanBgPusBPGH0NwRrtlpvcV6N0BAAxH9+khZKDPgOwOuaPGCKxAZRqWfZ5ruu4YJNzgBF6qbmdNjhxu+/nn1qoyMX3qaLkQAQuapsi5QEMsunHsm7X7LvFxUH2dvdgG7Hp/MJFFiCI1jDkh5meLTLLIwdYcOQ6MzUjQ2kvYhd1IxUJBVjXyvuHkzUAMpJzLoclJgq4hduj7M3p3GY4BCCkOD+Pwo3ZgGQ7VfgG/a657n6FrZE1PMsuNQlBYMw/x58Xpb46BURoA==</ReceiptHandle><MD5OfBody>ed7124b3f8ba1367789d0b0e062cbe0d</MD5OfBody><Body>{&quot;type&quot;:&quot;test_job_definition&quot;,&quot;version&quot;:&quot;1&quot;,&quot;data&quot;:{&quot;user_id&quot;:123}}</Body></Message></ReceiveMessageResult><ResponseMetadata><RequestId>5c31d203-c382-5cb1-a807-80b455f583f7</RequestId></ResponseMetadata></ReceiveMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:39 GMT
+      string: <?xml version="1.0"?><ReceiveMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ReceiveMessageResult><Message><MessageId>d43f2e43-dd38-43d7-b6bf-218738cbc67b</MessageId><ReceiptHandle>AQEBVO1p8zveg9ZXNPPkGUdL1HGk60T4JBlnJP8p1Q4e08KTwnrlcX1I+RLYTWRDR+99svSkUr10/ucrKdnze5Fhg2MxA84Xe3DjtfWLag7tByGyDUPi40yFwv9EWBupU+HMmp6nf64AYCxUfi9Y8eUrY/eJb0AXTpGjIznJQs1p9tls2j52ZMoF/tuDBLRTjX/tbD4kIWVMtoRr0Y2cjZm8CbpnDRRxKWqky/ANneHx+1SW76mOhlnFSfCnPWpTkWGkXEdJhd86YP2AP+ZaGIlna4BNco3kXqizKEfOyP6v3zWLggkWtSjDZPDpHUvReLS+ltUMBXxIZP5PeTeWL7VxpDkdaZ99LBNsXxxRhzosirX3W9CXffvsTw2iu8CkrPempSomwdOFvRCQbquyb43H4g==</ReceiptHandle><MD5OfBody>ed7124b3f8ba1367789d0b0e062cbe0d</MD5OfBody><Body>{&quot;type&quot;:&quot;test_job_definition&quot;,&quot;version&quot;:&quot;1&quot;,&quot;data&quot;:{&quot;user_id&quot;:123}}</Body></Message></ReceiveMessageResult><ResponseMetadata><RequestId>3fe80ea9-29ba-5ad4-9feb-56d076d5ed2d</RequestId></ResponseMetadata></ReceiveMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test
     body:
       encoding: UTF-8
-      string: Action=DeleteMessage&QueueUrl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F615239028156%2Fsimple-job-test-test&ReceiptHandle=AQEB0CULc4H%2FSlt6PNRk22LguzglQAM8eAck7Eft%2FJEtxNFRV3YFesNFgcuFBby0qCLnMMQ%2FyHqSpWcvwq%2BNuy%2BnBCUh9n1dPG8jgg4QXnrtkNq8OuzqmgFGioksG3h%2B1kEptPprjiC7zQgvanBgPusBPGH0NwRrtlpvcV6N0BAAxH9%2BkhZKDPgOwOuaPGCKxAZRqWfZ5ruu4YJNzgBF6qbmdNjhxu%2B%2Fnn1qoyMX3qaLkQAQuapsi5QEMsunHsm7X7LvFxUH2dvdgG7Hp%2FMJFFiCI1jDkh5meLTLLIwdYcOQ6MzUjQ2kvYhd1IxUJBVjXyvuHkzUAMpJzLoclJgq4hduj7M3p3GY4BCCkOD%2BPwo3ZgGQ7VfgG%2Fa657n6FrZE1PMsuNQlBYMw%2Fx58Xpb46BURoA%3D%3D&Version=2012-11-05
+      string: Action=DeleteMessage&QueueUrl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F615239028156%2Fsimple-job-test-test&ReceiptHandle=AQEBVO1p8zveg9ZXNPPkGUdL1HGk60T4JBlnJP8p1Q4e08KTwnrlcX1I%2BRLYTWRDR%2B99svSkUr10%2FucrKdnze5Fhg2MxA84Xe3DjtfWLag7tByGyDUPi40yFwv9EWBupU%2BHMmp6nf64AYCxUfi9Y8eUrY%2FeJb0AXTpGjIznJQs1p9tls2j52ZMoF%2FtuDBLRTjX%2FtbD4kIWVMtoRr0Y2cjZm8CbpnDRRxKWqky%2FANneHx%2B1SW76mOhlnFSfCnPWpTkWGkXEdJhd86YP2AP%2BZaGIlna4BNco3kXqizKEfOyP6v3zWLggkWtSjDZPDpHUvReLS%2BltUMBXxIZP5PeTeWL7VxpDkdaZ99LBNsXxxRhzosirX3W9CXffvsTw2iu8CkrPempSomwdOFvRCQbquyb43H4g%3D%3D&Version=2012-11-05
     headers:
       Content-Type:
       - application/x-www-form-urlencoded; charset=utf-8
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232439Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
-      - 40682c10f9389253e20ef2ef29c80d83ff46b9dbd9b352b4f980922da2df8c42
+      - a707f8dadb3a645c1ba7b89437ad5876ecb97e413cdc76eafaaa908aaa39ccad
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=479bb33b3f77f53025da5e8d3807b3541d2d2fb423a9b01a2105dd7496b54eed
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=54a905e774283ffc214dff25071d3d906da099053b748dc97a65f7814810a7e4
       Content-Length:
-      - '585'
+      - '581'
       Accept:
       - "*/*"
   response:
@@ -175,47 +163,43 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 130060c5-b537-5d65-8a24-38bcea584ebe
       Date:
-      - Fri, 22 Dec 2017 23:24:40 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '215'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - bc405107-2f03-5772-8ad9-03b0b97baa03
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><DeleteMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ResponseMetadata><RequestId>bc405107-2f03-5772-8ad9-03b0b97baa03</RequestId></ResponseMetadata></DeleteMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:40 GMT
+      string: <?xml version="1.0"?><DeleteMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ResponseMetadata><RequestId>130060c5-b537-5d65-8a24-38bcea584ebe</RequestId></ResponseMetadata></DeleteMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://monitoring.us-east-1.amazonaws.com/
     body:
       encoding: UTF-8
-      string: Action=PutMetricData&MetricData.member.1.Dimensions.member.1.Name=Environment&MetricData.member.1.Dimensions.member.1.Value=test&MetricData.member.1.Dimensions.member.2.Name=SQSQueueName&MetricData.member.1.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.1.Dimensions.member.3.Name=Host&MetricData.member.1.Dimensions.member.3.Value=probystash.local&MetricData.member.1.MetricName=MessageCheckCount&MetricData.member.1.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.1.Unit=Count&MetricData.member.1.Value=1.0&MetricData.member.2.Dimensions.member.1.Name=Environment&MetricData.member.2.Dimensions.member.1.Value=test&MetricData.member.2.Dimensions.member.2.Name=SQSQueueName&MetricData.member.2.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.2.Dimensions.member.3.Name=Host&MetricData.member.2.Dimensions.member.3.Value=probystash.local&MetricData.member.2.MetricName=MessageReceivedCount&MetricData.member.2.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.2.Unit=Count&MetricData.member.2.Value=1.0&MetricData.member.3.Dimensions.member.1.Name=Environment&MetricData.member.3.Dimensions.member.1.Value=test&MetricData.member.3.Dimensions.member.2.Name=SQSQueueName&MetricData.member.3.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.3.Dimensions.member.3.Name=Host&MetricData.member.3.Dimensions.member.3.Value=probystash.local&MetricData.member.3.MetricName=MessageMissCount&MetricData.member.3.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.3.Unit=Count&MetricData.member.3.Value=0.0&MetricData.member.4.Dimensions.member.1.Name=Environment&MetricData.member.4.Dimensions.member.1.Value=test&MetricData.member.4.Dimensions.member.2.Name=SQSQueueName&MetricData.member.4.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.4.Dimensions.member.3.Name=Host&MetricData.member.4.Dimensions.member.3.Value=probystash.local&MetricData.member.4.Dimensions.member.4.Name=JobType&MetricData.member.4.Dimensions.member.4.Value=test_job_definition&MetricData.member.4.MetricName=ExecutionCount&MetricData.member.4.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.4.Unit=Count&MetricData.member.4.Value=1.0&MetricData.member.5.Dimensions.member.1.Name=Environment&MetricData.member.5.Dimensions.member.1.Value=test&MetricData.member.5.Dimensions.member.2.Name=SQSQueueName&MetricData.member.5.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.5.Dimensions.member.3.Name=Host&MetricData.member.5.Dimensions.member.3.Value=probystash.local&MetricData.member.5.Dimensions.member.4.Name=JobType&MetricData.member.5.Dimensions.member.4.Value=test_job_definition&MetricData.member.5.MetricName=SuccessCount&MetricData.member.5.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.5.Unit=Count&MetricData.member.5.Value=1.0&MetricData.member.6.Dimensions.member.1.Name=Environment&MetricData.member.6.Dimensions.member.1.Value=test&MetricData.member.6.Dimensions.member.2.Name=SQSQueueName&MetricData.member.6.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.6.Dimensions.member.3.Name=Host&MetricData.member.6.Dimensions.member.3.Value=probystash.local&MetricData.member.6.Dimensions.member.4.Name=JobType&MetricData.member.6.Dimensions.member.4.Value=test_job_definition&MetricData.member.6.MetricName=ErrorCount&MetricData.member.6.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.6.Unit=Count&MetricData.member.6.Value=0.0&MetricData.member.7.Dimensions.member.1.Name=Environment&MetricData.member.7.Dimensions.member.1.Value=test&MetricData.member.7.Dimensions.member.2.Name=SQSQueueName&MetricData.member.7.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.7.Dimensions.member.3.Name=Host&MetricData.member.7.Dimensions.member.3.Value=probystash.local&MetricData.member.7.Dimensions.member.4.Name=JobType&MetricData.member.7.Dimensions.member.4.Value=test_job_definition&MetricData.member.7.MetricName=ExecutionTime&MetricData.member.7.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.7.Unit=Milliseconds&MetricData.member.7.Value=756.0&MetricData.member.8.Dimensions.member.1.Name=Environment&MetricData.member.8.Dimensions.member.1.Value=test&MetricData.member.8.Dimensions.member.2.Name=SQSQueueName&MetricData.member.8.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.8.Dimensions.member.3.Name=Host&MetricData.member.8.Dimensions.member.3.Value=probystash.local&MetricData.member.8.Dimensions.member.4.Name=JobType&MetricData.member.8.Dimensions.member.4.Value=test_job_definition&MetricData.member.8.MetricName=TimeToCompletion&MetricData.member.8.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.8.Unit=Milliseconds&MetricData.member.8.Value=1513985080305.0&MetricData.member.9.Dimensions.member.1.Name=Environment&MetricData.member.9.Dimensions.member.1.Value=test&MetricData.member.9.Dimensions.member.2.Name=SQSQueueName&MetricData.member.9.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.9.Dimensions.member.3.Name=Host&MetricData.member.9.Dimensions.member.3.Value=probystash.local&MetricData.member.9.Dimensions.member.4.Name=JobType&MetricData.member.9.Dimensions.member.4.Value=test_job_definition&MetricData.member.9.MetricName=ExecutionAttempts&MetricData.member.9.Timestamp=2017-12-22T23%3A24%3A40Z&MetricData.member.9.Unit=Count&MetricData.member.9.Value=0.0&Namespace=test&Version=2010-08-01
+      string: Action=PutMetricData&MetricData.member.1.Dimensions.member.1.Name=Environment&MetricData.member.1.Dimensions.member.1.Value=test&MetricData.member.1.Dimensions.member.2.Name=SQSQueueName&MetricData.member.1.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.1.Dimensions.member.3.Name=Host&MetricData.member.1.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.1.MetricName=MessageCheckCount&MetricData.member.1.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.1.Unit=Count&MetricData.member.1.Value=1.0&MetricData.member.2.Dimensions.member.1.Name=Environment&MetricData.member.2.Dimensions.member.1.Value=test&MetricData.member.2.Dimensions.member.2.Name=SQSQueueName&MetricData.member.2.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.2.Dimensions.member.3.Name=Host&MetricData.member.2.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.2.MetricName=MessageReceivedCount&MetricData.member.2.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.2.Unit=Count&MetricData.member.2.Value=1.0&MetricData.member.3.Dimensions.member.1.Name=Environment&MetricData.member.3.Dimensions.member.1.Value=test&MetricData.member.3.Dimensions.member.2.Name=SQSQueueName&MetricData.member.3.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.3.Dimensions.member.3.Name=Host&MetricData.member.3.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.3.MetricName=MessageMissCount&MetricData.member.3.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.3.Unit=Count&MetricData.member.3.Value=0.0&MetricData.member.4.Dimensions.member.1.Name=Environment&MetricData.member.4.Dimensions.member.1.Value=test&MetricData.member.4.Dimensions.member.2.Name=SQSQueueName&MetricData.member.4.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.4.Dimensions.member.3.Name=Host&MetricData.member.4.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.4.Dimensions.member.4.Name=JobType&MetricData.member.4.Dimensions.member.4.Value=test_job_definition&MetricData.member.4.MetricName=ExecutionCount&MetricData.member.4.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.4.Unit=Count&MetricData.member.4.Value=1.0&MetricData.member.5.Dimensions.member.1.Name=Environment&MetricData.member.5.Dimensions.member.1.Value=test&MetricData.member.5.Dimensions.member.2.Name=SQSQueueName&MetricData.member.5.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.5.Dimensions.member.3.Name=Host&MetricData.member.5.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.5.Dimensions.member.4.Name=JobType&MetricData.member.5.Dimensions.member.4.Value=test_job_definition&MetricData.member.5.MetricName=SuccessCount&MetricData.member.5.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.5.Unit=Count&MetricData.member.5.Value=1.0&MetricData.member.6.Dimensions.member.1.Name=Environment&MetricData.member.6.Dimensions.member.1.Value=test&MetricData.member.6.Dimensions.member.2.Name=SQSQueueName&MetricData.member.6.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.6.Dimensions.member.3.Name=Host&MetricData.member.6.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.6.Dimensions.member.4.Name=JobType&MetricData.member.6.Dimensions.member.4.Value=test_job_definition&MetricData.member.6.MetricName=ErrorCount&MetricData.member.6.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.6.Unit=Count&MetricData.member.6.Value=0.0&MetricData.member.7.Dimensions.member.1.Name=Environment&MetricData.member.7.Dimensions.member.1.Value=test&MetricData.member.7.Dimensions.member.2.Name=SQSQueueName&MetricData.member.7.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.7.Dimensions.member.3.Name=Host&MetricData.member.7.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.7.Dimensions.member.4.Name=JobType&MetricData.member.7.Dimensions.member.4.Value=test_job_definition&MetricData.member.7.MetricName=ExecutionTime&MetricData.member.7.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.7.Unit=Milliseconds&MetricData.member.7.Value=278.0&MetricData.member.8.Dimensions.member.1.Name=Environment&MetricData.member.8.Dimensions.member.1.Value=test&MetricData.member.8.Dimensions.member.2.Name=SQSQueueName&MetricData.member.8.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.8.Dimensions.member.3.Name=Host&MetricData.member.8.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.8.Dimensions.member.4.Name=JobType&MetricData.member.8.Dimensions.member.4.Value=test_job_definition&MetricData.member.8.MetricName=TimeToCompletion&MetricData.member.8.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.8.Unit=Milliseconds&MetricData.member.8.Value=1610571055503.0&MetricData.member.9.Dimensions.member.1.Name=Environment&MetricData.member.9.Dimensions.member.1.Value=test&MetricData.member.9.Dimensions.member.2.Name=SQSQueueName&MetricData.member.9.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.9.Dimensions.member.3.Name=Host&MetricData.member.9.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.9.Dimensions.member.4.Name=JobType&MetricData.member.9.Dimensions.member.4.Value=test_job_definition&MetricData.member.9.MetricName=ExecutionAttempts&MetricData.member.9.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.9.Unit=Count&MetricData.member.9.Value=0.0&Namespace=test&Version=2010-08-01
     headers:
       Content-Type:
       - application/x-www-form-urlencoded; charset=utf-8
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232440Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-cloudwatch/1.47.0
       Host:
       - monitoring.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
-      - df0893e3e9edd46ddfa9a0ccfe70018b1942c4f95ae081fb284e3142e5a1636d
+      - bf0a6db2c0ee9c4714cec1c220ab0a5a446f80a407a6cc0f890e601aad8cf180
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/monitoring/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=0eb4f7e127d5d3ffcabfdd1069d19d987e927776d44e27f1a33b38161bb32915
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/monitoring/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=581668a3e0d0fa1f627184bbcae175c9897170b745fe4070f45a4aeacea724c1
       Content-Length:
-      - '5377'
+      - '5404'
       Accept:
       - "*/*"
   response:
@@ -224,23 +208,23 @@ http_interactions:
       message: OK
     headers:
       X-Amzn-Requestid:
-      - 48c0caf6-e76f-11e7-aa6d-115f93301bfc
+      - 1d5d5343-d0d5-4f25-8a78-2f9e8179c4b8
       Content-Type:
       - text/xml
       Content-Length:
       - '212'
       Date:
-      - Fri, 22 Dec 2017 23:24:40 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
     body:
       encoding: UTF-8
       string: |
         <PutMetricDataResponse xmlns="http://monitoring.amazonaws.com/doc/2010-08-01/">
           <ResponseMetadata>
-            <RequestId>48c0caf6-e76f-11e7-aa6d-115f93301bfc</RequestId>
+            <RequestId>1d5d5343-d0d5-4f25-8a78-2f9e8179c4b8</RequestId>
           </ResponseMetadata>
         </PutMetricDataResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:40 GMT
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test
@@ -253,16 +237,16 @@ http_interactions:
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232440Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
       - 7783b0354d412871731d41f8a05c0659d618f534722bd19e4c14ba6fa223bbae
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=07f1541db0296fc37298c01cc8c93d1790fa077422f3c86298364fc84a57934e
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=eeae4ccce500da06eef6d562f8ec27632281654905401d8516a0bf15e6b56753
       Content-Length:
       - '172'
       Accept:
@@ -272,47 +256,43 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - e41d2e4f-a942-530d-92d9-7636f62d669b
       Date:
-      - Fri, 22 Dec 2017 23:24:41 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '978'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - 8739c8f0-6fd6-5d90-b25d-9a47f9af86ae
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><ReceiveMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ReceiveMessageResult><Message><MessageId>c3c77ab9-3871-4340-a1d6-8f65891b2c80</MessageId><ReceiptHandle>AQEBPcdan7unlJsWVz3qF3Pfjki9ACMtQYes8+4pZD5LZoY0+TO+jk4KYWmqk0Zz82H2jLSuNNd6HOvUbekIURfAIOUhQhy9eM79czjJMujVVfswSLnCihFmmRsU8V7sDEfo+l9Pa6Ari4Y8j5wqr47EvnU3PfODPSGvBq4qKVMg+mT6hJ/Vjw7PpZeDxabFv+niXnSIA5eIceEEvE41cp0aWMHyPW/fz3u3Qoe0v0xyhEbuO+vfTAkAlZcQKFelUx9mI0uNYedhBli/c3LUNG9WSbrC6D5vD7bymHh4AwGoH9gW6uGVIahD58kIfFFpTQw7GdXUvHW7wzGPxn9HFYjqmSo8bMS4kh2Bb1yk+AjhVLhoUOsS1Gvc2tT/Cd1/9ctg8TXYCcjWSuO6J46c6++W4g==</ReceiptHandle><MD5OfBody>385ad7bb018debd0383243070b76e712</MD5OfBody><Body>{&quot;type&quot;:&quot;test_job_definition&quot;,&quot;version&quot;:&quot;1&quot;,&quot;data&quot;:{&quot;user_id&quot;:456}}</Body></Message></ReceiveMessageResult><ResponseMetadata><RequestId>8739c8f0-6fd6-5d90-b25d-9a47f9af86ae</RequestId></ResponseMetadata></ReceiveMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:41 GMT
+      string: <?xml version="1.0"?><ReceiveMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ReceiveMessageResult><Message><MessageId>c9d82a99-6445-4eeb-b933-c647d4578ee5</MessageId><ReceiptHandle>AQEBiNTRuq7ahE97s+CgstsmWI8OgTUuadzCe2KoDFrzV8iIkQOiKf8LfnmGfi1oAsp4EkvhB6yRjBt6TVcOqbzDjxqACJRju3vjHhDW37Fr+m27peHqavpM8Jn8KK/Y8b93OcljYvxSQ9iYGYP3rKaje+sGOV0oI3i31V7Ojpey4Xg1FsECWzfIfRA/Nu0MBeQYCuHxCzgLbQ6ReDRVmTqbLqGGftA0rsOmLZcxA4qZz8ppU+M9WdFQz5D2/U8d91UgP6J2BPOYvVwT2P5hJePGDV5NfIOJOvAOLqtDtW5A5gyfBBntz7ZplJ1ljL51QnDmwO05DNTiBpZ6cPnqTwJdsKCNbtr7gzuj9uFXG6XCNuLv8fnTjRrTHxsYh3sDkf7GEeR4OkYiI6WOD0cuO7xhdg==</ReceiptHandle><MD5OfBody>385ad7bb018debd0383243070b76e712</MD5OfBody><Body>{&quot;type&quot;:&quot;test_job_definition&quot;,&quot;version&quot;:&quot;1&quot;,&quot;data&quot;:{&quot;user_id&quot;:456}}</Body></Message></ReceiveMessageResult><ResponseMetadata><RequestId>e41d2e4f-a942-530d-92d9-7636f62d669b</RequestId></ResponseMetadata></ReceiveMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test
     body:
       encoding: UTF-8
-      string: Action=DeleteMessage&QueueUrl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F615239028156%2Fsimple-job-test-test&ReceiptHandle=AQEBPcdan7unlJsWVz3qF3Pfjki9ACMtQYes8%2B4pZD5LZoY0%2BTO%2Bjk4KYWmqk0Zz82H2jLSuNNd6HOvUbekIURfAIOUhQhy9eM79czjJMujVVfswSLnCihFmmRsU8V7sDEfo%2Bl9Pa6Ari4Y8j5wqr47EvnU3PfODPSGvBq4qKVMg%2BmT6hJ%2FVjw7PpZeDxabFv%2BniXnSIA5eIceEEvE41cp0aWMHyPW%2Ffz3u3Qoe0v0xyhEbuO%2BvfTAkAlZcQKFelUx9mI0uNYedhBli%2Fc3LUNG9WSbrC6D5vD7bymHh4AwGoH9gW6uGVIahD58kIfFFpTQw7GdXUvHW7wzGPxn9HFYjqmSo8bMS4kh2Bb1yk%2BAjhVLhoUOsS1Gvc2tT%2FCd1%2F9ctg8TXYCcjWSuO6J46c6%2B%2BW4g%3D%3D&Version=2012-11-05
+      string: Action=DeleteMessage&QueueUrl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F615239028156%2Fsimple-job-test-test&ReceiptHandle=AQEBiNTRuq7ahE97s%2BCgstsmWI8OgTUuadzCe2KoDFrzV8iIkQOiKf8LfnmGfi1oAsp4EkvhB6yRjBt6TVcOqbzDjxqACJRju3vjHhDW37Fr%2Bm27peHqavpM8Jn8KK%2FY8b93OcljYvxSQ9iYGYP3rKaje%2BsGOV0oI3i31V7Ojpey4Xg1FsECWzfIfRA%2FNu0MBeQYCuHxCzgLbQ6ReDRVmTqbLqGGftA0rsOmLZcxA4qZz8ppU%2BM9WdFQz5D2%2FU8d91UgP6J2BPOYvVwT2P5hJePGDV5NfIOJOvAOLqtDtW5A5gyfBBntz7ZplJ1ljL51QnDmwO05DNTiBpZ6cPnqTwJdsKCNbtr7gzuj9uFXG6XCNuLv8fnTjRrTHxsYh3sDkf7GEeR4OkYiI6WOD0cuO7xhdg%3D%3D&Version=2012-11-05
     headers:
       Content-Type:
       - application/x-www-form-urlencoded; charset=utf-8
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232441Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
-      - cfb9d134508b9fba93ccf4c30f5ac727bb61f4e0199e7d8cbd2c5f2947760211
+      - 5d7ee2eef62ed8419ac8c2747c4519ab695428a27ab5d096303d3c66232157c4
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=fad3b5b537068d0ac78c4240127d5fca954fbe787d4e101ddd6fe71442150fa2
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=63998d35c47d81b7792bfe849056278fefc8236dce587952d0524afbdc864a63
       Content-Length:
-      - '589'
+      - '573'
       Accept:
       - "*/*"
   response:
@@ -320,47 +300,43 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 93c9aaa4-06b9-5a2d-b6f7-f2dd59d6a9ba
       Date:
-      - Fri, 22 Dec 2017 23:24:41 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '215'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - de86a81d-6ebc-5d64-a4ad-faaaf8c52adb
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><DeleteMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ResponseMetadata><RequestId>de86a81d-6ebc-5d64-a4ad-faaaf8c52adb</RequestId></ResponseMetadata></DeleteMessageResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:41 GMT
+      string: <?xml version="1.0"?><DeleteMessageResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><ResponseMetadata><RequestId>93c9aaa4-06b9-5a2d-b6f7-f2dd59d6a9ba</RequestId></ResponseMetadata></DeleteMessageResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:55 GMT
 - request:
     method: post
     uri: https://monitoring.us-east-1.amazonaws.com/
     body:
       encoding: UTF-8
-      string: Action=PutMetricData&MetricData.member.1.Dimensions.member.1.Name=Environment&MetricData.member.1.Dimensions.member.1.Value=test&MetricData.member.1.Dimensions.member.2.Name=SQSQueueName&MetricData.member.1.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.1.Dimensions.member.3.Name=Host&MetricData.member.1.Dimensions.member.3.Value=probystash.local&MetricData.member.1.MetricName=MessageCheckCount&MetricData.member.1.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.1.Unit=Count&MetricData.member.1.Value=1.0&MetricData.member.2.Dimensions.member.1.Name=Environment&MetricData.member.2.Dimensions.member.1.Value=test&MetricData.member.2.Dimensions.member.2.Name=SQSQueueName&MetricData.member.2.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.2.Dimensions.member.3.Name=Host&MetricData.member.2.Dimensions.member.3.Value=probystash.local&MetricData.member.2.MetricName=MessageReceivedCount&MetricData.member.2.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.2.Unit=Count&MetricData.member.2.Value=1.0&MetricData.member.3.Dimensions.member.1.Name=Environment&MetricData.member.3.Dimensions.member.1.Value=test&MetricData.member.3.Dimensions.member.2.Name=SQSQueueName&MetricData.member.3.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.3.Dimensions.member.3.Name=Host&MetricData.member.3.Dimensions.member.3.Value=probystash.local&MetricData.member.3.MetricName=MessageMissCount&MetricData.member.3.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.3.Unit=Count&MetricData.member.3.Value=0.0&MetricData.member.4.Dimensions.member.1.Name=Environment&MetricData.member.4.Dimensions.member.1.Value=test&MetricData.member.4.Dimensions.member.2.Name=SQSQueueName&MetricData.member.4.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.4.Dimensions.member.3.Name=Host&MetricData.member.4.Dimensions.member.3.Value=probystash.local&MetricData.member.4.Dimensions.member.4.Name=JobType&MetricData.member.4.Dimensions.member.4.Value=test_job_definition&MetricData.member.4.MetricName=ExecutionCount&MetricData.member.4.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.4.Unit=Count&MetricData.member.4.Value=1.0&MetricData.member.5.Dimensions.member.1.Name=Environment&MetricData.member.5.Dimensions.member.1.Value=test&MetricData.member.5.Dimensions.member.2.Name=SQSQueueName&MetricData.member.5.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.5.Dimensions.member.3.Name=Host&MetricData.member.5.Dimensions.member.3.Value=probystash.local&MetricData.member.5.Dimensions.member.4.Name=JobType&MetricData.member.5.Dimensions.member.4.Value=test_job_definition&MetricData.member.5.MetricName=SuccessCount&MetricData.member.5.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.5.Unit=Count&MetricData.member.5.Value=1.0&MetricData.member.6.Dimensions.member.1.Name=Environment&MetricData.member.6.Dimensions.member.1.Value=test&MetricData.member.6.Dimensions.member.2.Name=SQSQueueName&MetricData.member.6.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.6.Dimensions.member.3.Name=Host&MetricData.member.6.Dimensions.member.3.Value=probystash.local&MetricData.member.6.Dimensions.member.4.Name=JobType&MetricData.member.6.Dimensions.member.4.Value=test_job_definition&MetricData.member.6.MetricName=ErrorCount&MetricData.member.6.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.6.Unit=Count&MetricData.member.6.Value=0.0&MetricData.member.7.Dimensions.member.1.Name=Environment&MetricData.member.7.Dimensions.member.1.Value=test&MetricData.member.7.Dimensions.member.2.Name=SQSQueueName&MetricData.member.7.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.7.Dimensions.member.3.Name=Host&MetricData.member.7.Dimensions.member.3.Value=probystash.local&MetricData.member.7.Dimensions.member.4.Name=JobType&MetricData.member.7.Dimensions.member.4.Value=test_job_definition&MetricData.member.7.MetricName=ExecutionTime&MetricData.member.7.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.7.Unit=Milliseconds&MetricData.member.7.Value=655.0&MetricData.member.8.Dimensions.member.1.Name=Environment&MetricData.member.8.Dimensions.member.1.Value=test&MetricData.member.8.Dimensions.member.2.Name=SQSQueueName&MetricData.member.8.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.8.Dimensions.member.3.Name=Host&MetricData.member.8.Dimensions.member.3.Value=probystash.local&MetricData.member.8.Dimensions.member.4.Name=JobType&MetricData.member.8.Dimensions.member.4.Value=test_job_definition&MetricData.member.8.MetricName=TimeToCompletion&MetricData.member.8.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.8.Unit=Milliseconds&MetricData.member.8.Value=1513985081438.0&MetricData.member.9.Dimensions.member.1.Name=Environment&MetricData.member.9.Dimensions.member.1.Value=test&MetricData.member.9.Dimensions.member.2.Name=SQSQueueName&MetricData.member.9.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.9.Dimensions.member.3.Name=Host&MetricData.member.9.Dimensions.member.3.Value=probystash.local&MetricData.member.9.Dimensions.member.4.Name=JobType&MetricData.member.9.Dimensions.member.4.Value=test_job_definition&MetricData.member.9.MetricName=ExecutionAttempts&MetricData.member.9.Timestamp=2017-12-22T23%3A24%3A41Z&MetricData.member.9.Unit=Count&MetricData.member.9.Value=0.0&Namespace=test&Version=2010-08-01
+      string: Action=PutMetricData&MetricData.member.1.Dimensions.member.1.Name=Environment&MetricData.member.1.Dimensions.member.1.Value=test&MetricData.member.1.Dimensions.member.2.Name=SQSQueueName&MetricData.member.1.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.1.Dimensions.member.3.Name=Host&MetricData.member.1.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.1.MetricName=MessageCheckCount&MetricData.member.1.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.1.Unit=Count&MetricData.member.1.Value=1.0&MetricData.member.2.Dimensions.member.1.Name=Environment&MetricData.member.2.Dimensions.member.1.Value=test&MetricData.member.2.Dimensions.member.2.Name=SQSQueueName&MetricData.member.2.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.2.Dimensions.member.3.Name=Host&MetricData.member.2.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.2.MetricName=MessageReceivedCount&MetricData.member.2.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.2.Unit=Count&MetricData.member.2.Value=1.0&MetricData.member.3.Dimensions.member.1.Name=Environment&MetricData.member.3.Dimensions.member.1.Value=test&MetricData.member.3.Dimensions.member.2.Name=SQSQueueName&MetricData.member.3.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.3.Dimensions.member.3.Name=Host&MetricData.member.3.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.3.MetricName=MessageMissCount&MetricData.member.3.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.3.Unit=Count&MetricData.member.3.Value=0.0&MetricData.member.4.Dimensions.member.1.Name=Environment&MetricData.member.4.Dimensions.member.1.Value=test&MetricData.member.4.Dimensions.member.2.Name=SQSQueueName&MetricData.member.4.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.4.Dimensions.member.3.Name=Host&MetricData.member.4.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.4.Dimensions.member.4.Name=JobType&MetricData.member.4.Dimensions.member.4.Value=test_job_definition&MetricData.member.4.MetricName=ExecutionCount&MetricData.member.4.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.4.Unit=Count&MetricData.member.4.Value=1.0&MetricData.member.5.Dimensions.member.1.Name=Environment&MetricData.member.5.Dimensions.member.1.Value=test&MetricData.member.5.Dimensions.member.2.Name=SQSQueueName&MetricData.member.5.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.5.Dimensions.member.3.Name=Host&MetricData.member.5.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.5.Dimensions.member.4.Name=JobType&MetricData.member.5.Dimensions.member.4.Value=test_job_definition&MetricData.member.5.MetricName=SuccessCount&MetricData.member.5.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.5.Unit=Count&MetricData.member.5.Value=1.0&MetricData.member.6.Dimensions.member.1.Name=Environment&MetricData.member.6.Dimensions.member.1.Value=test&MetricData.member.6.Dimensions.member.2.Name=SQSQueueName&MetricData.member.6.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.6.Dimensions.member.3.Name=Host&MetricData.member.6.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.6.Dimensions.member.4.Name=JobType&MetricData.member.6.Dimensions.member.4.Value=test_job_definition&MetricData.member.6.MetricName=ErrorCount&MetricData.member.6.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.6.Unit=Count&MetricData.member.6.Value=0.0&MetricData.member.7.Dimensions.member.1.Name=Environment&MetricData.member.7.Dimensions.member.1.Value=test&MetricData.member.7.Dimensions.member.2.Name=SQSQueueName&MetricData.member.7.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.7.Dimensions.member.3.Name=Host&MetricData.member.7.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.7.Dimensions.member.4.Name=JobType&MetricData.member.7.Dimensions.member.4.Value=test_job_definition&MetricData.member.7.MetricName=ExecutionTime&MetricData.member.7.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.7.Unit=Milliseconds&MetricData.member.7.Value=229.0&MetricData.member.8.Dimensions.member.1.Name=Environment&MetricData.member.8.Dimensions.member.1.Value=test&MetricData.member.8.Dimensions.member.2.Name=SQSQueueName&MetricData.member.8.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.8.Dimensions.member.3.Name=Host&MetricData.member.8.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.8.Dimensions.member.4.Name=JobType&MetricData.member.8.Dimensions.member.4.Value=test_job_definition&MetricData.member.8.MetricName=TimeToCompletion&MetricData.member.8.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.8.Unit=Milliseconds&MetricData.member.8.Value=1610571055885.0&MetricData.member.9.Dimensions.member.1.Name=Environment&MetricData.member.9.Dimensions.member.1.Value=test&MetricData.member.9.Dimensions.member.2.Name=SQSQueueName&MetricData.member.9.Dimensions.member.2.Value=simple-job-test-test&MetricData.member.9.Dimensions.member.3.Name=Host&MetricData.member.9.Dimensions.member.3.Value=AlexWaffleman.local&MetricData.member.9.Dimensions.member.4.Name=JobType&MetricData.member.9.Dimensions.member.4.Value=test_job_definition&MetricData.member.9.MetricName=ExecutionAttempts&MetricData.member.9.Timestamp=2021-01-13T20%3A50%3A55Z&MetricData.member.9.Unit=Count&MetricData.member.9.Value=0.0&Namespace=test&Version=2010-08-01
     headers:
       Content-Type:
       - application/x-www-form-urlencoded; charset=utf-8
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T232441Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-cloudwatch/1.47.0
       Host:
       - monitoring.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205055Z
       X-Amz-Content-Sha256:
-      - a0dd580dcd709d3d5965eb1f507c6f6c51d59b4262ef2ff5a6579b5be23026b0
+      - 1c21d8a0d1f7856601e45eeb72209c292eacb2e1b6b8fa2dba9ff73a96ae7b59
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/monitoring/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=ae3d352b19e1950d615eb45022dd1558709ac91599061bdef7291a024e427c55
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/monitoring/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=fd3bff6490c8e13459a782d727e7d4694f83702947d0b2437b74c7c2196eff33
       Content-Length:
-      - '5377'
+      - '5404'
       Accept:
       - "*/*"
   response:
@@ -369,21 +345,21 @@ http_interactions:
       message: OK
     headers:
       X-Amzn-Requestid:
-      - 49bda276-e76f-11e7-b00a-cdaf6ae13cb0
+      - 9acd5260-4a15-4c67-a460-92f4df3af7a6
       Content-Type:
       - text/xml
       Content-Length:
       - '212'
       Date:
-      - Fri, 22 Dec 2017 23:24:41 GMT
+      - Wed, 13 Jan 2021 20:50:55 GMT
     body:
       encoding: UTF-8
       string: |
         <PutMetricDataResponse xmlns="http://monitoring.amazonaws.com/doc/2010-08-01/">
           <ResponseMetadata>
-            <RequestId>49bda276-e76f-11e7-b00a-cdaf6ae13cb0</RequestId>
+            <RequestId>9acd5260-4a15-4c67-a460-92f4df3af7a6</RequestId>
           </ResponseMetadata>
         </PutMetricDataResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 23:24:42 GMT
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:56 GMT
 recorded_with: VCR 4.0.0

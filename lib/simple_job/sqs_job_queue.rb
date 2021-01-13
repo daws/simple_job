@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require 'socket'
-require 'aws-sdk'
+require 'aws-sdk-sqs'
+require 'aws-sdk-cloudwatch'
 
 module SimpleJob
   # A SimpleJob::JobQueue implementation that uses AWS SQS
@@ -286,7 +287,9 @@ module SimpleJob
         "#{self.class.config[:environment]}"
       self.cloud_watch = Aws::CloudWatch::Client.new
       self.sqs_queue = Aws::SQS::Client.new
-      self.sqs_queue_url = sqs_queue.create_queue(queue_name: queue_name).queue_url
+byebug
+      queue = sqs_queue.create_queue(queue_name: queue_name)
+      self.sqs_queue_url = queue.queue_url
     end
 
     def logger

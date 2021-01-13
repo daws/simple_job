@@ -12,16 +12,16 @@ http_interactions:
       Accept-Encoding:
       - ''
       User-Agent:
-      - aws-sdk-ruby2/2.10.109 ruby/2.4.2 x86_64-darwin16
-      X-Amz-Date:
-      - 20171222T220450Z
+      - aws-sdk-ruby3/3.111.0 ruby/2.4.2 x86_64-darwin19 aws-sdk-sqs/1.35.0
       Host:
       - sqs.us-east-1.amazonaws.com
+      X-Amz-Date:
+      - 20210113T205057Z
       X-Amz-Content-Sha256:
       - f850bf8c73948478be235b2c2422822c16b89bea05c42ea2dd4772da660a15b8
       Authorization:
-      - AWS4-HMAC-SHA256 Credential=AKIAIQG74WFSC34SDNRQ/20171222/us-east-1/sqs/aws4_request,
-        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=f7e0d407a017ee3854c14cb7f13bc6ee919971e231807cc50cd5d5c0cff97cd5
+      - AWS4-HMAC-SHA256 Credential=AKIAITWPSEAFLHYUWYBQ/20210113/us-east-1/sqs/aws4_request,
+        SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=6cb576cfe50c792515ccb4b51d921c4aeb2fad39ad0298749dea70aaa4fe3c2b
       Content-Length:
       - '68'
       Accept:
@@ -31,21 +31,17 @@ http_interactions:
       code: 200
       message: OK
     headers:
-      Server:
-      - Server
+      X-Amzn-Requestid:
+      - 6f74f18e-32b5-5b0c-9974-a9f76dc4a15a
       Date:
-      - Fri, 22 Dec 2017 22:04:51 GMT
+      - Wed, 13 Jan 2021 20:50:57 GMT
       Content-Type:
       - text/xml
       Content-Length:
       - '340'
-      Connection:
-      - keep-alive
-      X-Amzn-Requestid:
-      - af82d91c-6902-5b6c-925a-8babeac0f64d
     body:
       encoding: UTF-8
-      string: <?xml version="1.0"?><CreateQueueResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><CreateQueueResult><QueueUrl>https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test</QueueUrl></CreateQueueResult><ResponseMetadata><RequestId>af82d91c-6902-5b6c-925a-8babeac0f64d</RequestId></ResponseMetadata></CreateQueueResponse>
-    http_version: 
-  recorded_at: Fri, 22 Dec 2017 22:04:51 GMT
+      string: <?xml version="1.0"?><CreateQueueResponse xmlns="http://queue.amazonaws.com/doc/2012-11-05/"><CreateQueueResult><QueueUrl>https://sqs.us-east-1.amazonaws.com/615239028156/simple-job-test-test</QueueUrl></CreateQueueResult><ResponseMetadata><RequestId>6f74f18e-32b5-5b0c-9974-a9f76dc4a15a</RequestId></ResponseMetadata></CreateQueueResponse>
+    http_version:
+  recorded_at: Wed, 13 Jan 2021 20:50:57 GMT
 recorded_with: VCR 4.0.0
