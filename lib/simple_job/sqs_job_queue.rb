@@ -287,9 +287,7 @@ module SimpleJob
         "#{self.class.config[:environment]}"
       self.cloud_watch = Aws::CloudWatch::Client.new
       self.sqs_queue = Aws::SQS::Client.new
-byebug
-      queue = sqs_queue.create_queue(queue_name: queue_name)
-      self.sqs_queue_url = queue.queue_url
+      self.sqs_queue_url = sqs_queue.create_queue(queue_name: queue_name).queue_url
     end
 
     def logger
